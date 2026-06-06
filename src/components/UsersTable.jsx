@@ -111,7 +111,7 @@ export default function UsersTable() {
         </thead>
         <tbody>
           {filteredAndSortedUsers.map((user, index) => (
-            <tr key={user.id} className={`user-row ${user.type} ${index === 0 && user.type === 'leader' ? 'leader-first' : ''}`}>
+            <tr key={user.id} className={`user-row ${user.type}`}>
               <td>{index + 1}</td>
               <td>{user.name}</td>
               <td>{user.efficiency}</td>
@@ -246,57 +246,6 @@ export default function UsersTable() {
         .status-badge.loser {
           background-color: #fed7aa;
           color: #92400e;
-        }
-
-        .leader-first td:first-child {
-          position: relative;
-          overflow: visible;
-        }
-
-        .leader-first td:first-child::before {
-          content: '🏆 ';
-          margin-right: 0.25rem;
-        }
-
-        .leader-first td:first-child::after {
-          content: '';
-          position: absolute;
-          left: 50%;
-          top: 50%;
-          width: 0;
-          height: 0;
-          opacity: 0;
-          box-shadow:
-            -10px -10px 0 0 #facc15,
-            10px -12px 0 0 #f97316,
-            -8px 8px 0 0 #fde68a,
-            12px 6px 0 0 #ef4444,
-            0px 12px 0 0 #a855f7;
-          transform: translate(-50%, -50%) scale(0.5);
-          pointer-events: none;
-        }
-
-        .leader-first:hover td:first-child::after {
-          opacity: 1;
-          animation: confetti-burst 0.65s ease-out forwards;
-        }
-
-        @keyframes confetti-burst {
-          0% {
-            opacity: 0;
-            transform: translate(0, 0) scale(0.75);
-          }
-          40% {
-            opacity: 1;
-            transform: translate(8px, -8px) scale(1);
-          }
-          80% {
-            transform: translate(14px, -18px) scale(1);
-          }
-          100% {
-            opacity: 0;
-            transform: translate(18px, -28px) scale(0.8);
-          }
         }
 
         @media (max-width: 768px) {

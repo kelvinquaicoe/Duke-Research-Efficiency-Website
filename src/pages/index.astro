@@ -33,7 +33,7 @@ import GamePlaceholder from "../components/GamePlaceholder.jsx";
       </div>
 
       <div class="game-placeholder-card">
-        <GamePlaceholder client:load />
+        <GamePlaceholder client:only="react" />
       </div>
     </div>
   </section>
@@ -960,7 +960,7 @@ import GamePlaceholder from "../components/GamePlaceholder.jsx";
 	display: flex;
 	flex-direction: column;
 	gap: 1.25rem;
-	max-width: 950px;
+	max-width: 960px;
 	margin: 0 auto;
   }
 

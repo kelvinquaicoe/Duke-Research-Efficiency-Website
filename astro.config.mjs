@@ -11,6 +11,9 @@ export default defineConfig({
   }),
   integrations: [react()],
   vite: {
+    resolve: {
+      dedupe: ['react', 'react-dom'],
+    },
     optimizeDeps: { include: ['react', 'react-dom', 'react-dom/client'] },
   },
 });

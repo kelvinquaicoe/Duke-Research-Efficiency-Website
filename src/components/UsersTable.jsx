@@ -110,19 +110,35 @@ export default function UsersTable() {
           </tr>
         </thead>
         <tbody>
-          {filteredAndSortedUsers.map((user, index) => (
-            <tr key={user.id} className={`user-row ${user.type}`}>
-              <td>{index + 1}</td>
-              <td>{user.name}</td>
-              <td>{user.efficiency}</td>
-              <td>{user.gpuHours}</td>
-              <td>
-                <span className={`status-badge ${user.type}`}>
-                  {user.type === 'leader' ? '⭐ Top Performer' : '📊 Active'}
-                </span>
-              </td>
-            </tr>
-          ))}
+          {filteredAndSortedUsers.map((user, index) => {
+            const isFirstLeader = index === 0 && user.type === 'leader';
+            return (
+              <tr key={user.id} className={`user-row ${user.type} ${isFirstLeader ? 'first-place' : ''}`}>
+                <td>
+                  {isFirstLeader ? (
+                    <div className="trophy-wrap">
+                      🏆
+                      <div className="confetti"></div>
+                      <div className="confetti"></div>
+                      <div className="confetti"></div>
+                      <div className="confetti"></div>
+                      <div className="confetti"></div>
+                    </div>
+                  ) : (
+                    index + 1
+                  )}
+                </td>
+                <td>{user.name}</td>
+                <td>{user.efficiency}</td>
+                <td>{user.gpuHours}</td>
+                <td>
+                  <span className={`status-badge ${user.type}`}>
+                    {user.type === 'leader' ? '⭐ Top Performer' : '📊 Active'}
+                  </span>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
 
@@ -130,15 +146,16 @@ export default function UsersTable() {
         .users-container {
           max-width: 1000px;
           margin: 0 auto;
-          padding: 2rem;
+          padding: 0;
         }
 
         .controls-section {
-          background: white;
-          border-radius: 16px;
+          background: #061318;
+          border: 1px solid rgba(83, 213, 253, 0.22);
+          border-radius: 24px;
           padding: 1.5rem;
           margin-bottom: 2rem;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+          box-shadow: 0 12px 32px rgba(2, 12, 18, 0.4);
           display: flex;
           gap: 1.5rem;
           align-items: flex-end;
@@ -154,25 +171,35 @@ export default function UsersTable() {
 
         .search-box label,
         .filter-box label {
+          font-family: 'Orbitron', sans-serif;
           font-weight: 600;
-          font-size: 0.9rem;
-          color: #333;
+          font-size: 0.8rem;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          color: #d5ad4d;
         }
 
         .search-input,
         .filter-select {
+          background: rgba(255, 255, 255, 0.03);
+          color: #e5f7ff;
           padding: 0.6rem 0.85rem;
-          border: 1px solid #ddd;
-          border-radius: 8px;
+          border: 1px solid rgba(83, 213, 253, 0.24);
+          border-radius: 12px;
           font-size: 0.95rem;
-          transition: border-color 0.2s ease;
+          transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+        }
+
+        .search-input::placeholder {
+          color: #7a8ba3;
         }
 
         .search-input:focus,
         .filter-select:focus {
           outline: none;
-          border-color: #16a34a;
-          box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
+          border-color: #53d5fd;
+          box-shadow: 0 0 0 3px rgba(83, 213, 253, 0.14);
+          background: rgba(255, 255, 255, 0.06);
         }
 
         .search-input {
@@ -186,66 +213,158 @@ export default function UsersTable() {
         .result-count {
           margin: 0;
           font-size: 0.9rem;
-          color: #666;
+          color: #b6eeff;
         }
 
         .users-table {
           width: 100%;
           border-collapse: collapse;
-          background: white;
-          border-radius: 16px;
+          background: #061318;
+          color: #e8f7ff;
+          border: 1px solid rgba(83, 213, 253, 0.18);
+          border-radius: 24px;
           overflow: hidden;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+          box-shadow: 0 18px 42px rgba(2, 12, 18, 0.45);
         }
 
         .users-table thead {
-          background: #222;
-          color: white;
+          background: rgba(83, 213, 253, 0.08);
+          color: #53d5fd;
         }
 
         .users-table th {
+          font-family: 'Orbitron', sans-serif;
           padding: 1rem 1.25rem;
           text-align: left;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          font-size: 0.78rem;
           font-weight: 700;
+          border-bottom: 1px solid rgba(83, 213, 253, 0.18);
         }
 
         .users-table td {
           padding: 1rem 1.25rem;
-          border-bottom: 1px solid #eee;
+          border-bottom: 1px solid rgba(83, 213, 253, 0.1);
         }
 
         .user-row {
-          transition: background-color 0.2s ease;
+          transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
         }
 
         .user-row:hover {
-          background-color: #f9fafb;
+          transform: translateY(-2px);
         }
 
         .user-row.leader {
-          background-color: #f0fdf4;
+          background-color: rgba(83, 213, 253, 0.05);
         }
 
         .user-row.loser {
-          background-color: #fff7ed;
+          background-color: rgba(213, 173, 77, 0.07);
+        }
+
+        .user-row.leader:hover {
+          background-color: rgba(83, 213, 253, 0.1);
+          box-shadow: inset 3px 0 0 #53d5fd;
+        }
+
+        .user-row.loser:hover {
+          background-color: rgba(213, 173, 77, 0.12);
+          box-shadow: inset 3px 0 0 #d5ad4d;
         }
 
         .status-badge {
           display: inline-block;
           padding: 0.35rem 0.75rem;
-          border-radius: 12px;
-          font-size: 0.85rem;
+          border-radius: 999px;
+          font-size: 0.78rem;
           font-weight: 600;
+          font-family: 'Orbitron', sans-serif;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          border: 1px solid transparent;
         }
 
         .status-badge.leader {
-          background-color: #dcfce7;
-          color: #166534;
+          background-color: rgba(83, 213, 253, 0.12);
+          color: #b6eeff;
+          border-color: rgba(83, 213, 253, 0.25);
         }
 
         .status-badge.loser {
-          background-color: #fed7aa;
-          color: #92400e;
+          background-color: rgba(213, 173, 77, 0.14);
+          color: #ffebaf;
+          border-color: rgba(213, 173, 77, 0.28);
+        }
+
+        .trophy-wrap {
+          position: relative;
+          display: inline-flex;
+          align-items: center;
+          gap: 0.35rem;
+          margin-right: 0.2rem;
+          font-size: 1.1rem;
+          overflow: visible;
+        }
+
+        .confetti {
+          position: absolute;
+          left: 50%;
+          top: 0;
+          width: 6px;
+          height: 6px;
+          background: #d5ad4d;
+          opacity: 0;
+          border-radius: 50%;
+          pointer-events: none;
+        }
+
+        .first-place:hover .confetti {
+          animation: confetti-pop 0.6s ease-out forwards;
+        }
+
+        .first-place:hover .confetti:nth-child(2) {
+          animation-delay: 0.02s;
+        }
+
+        .first-place:hover .confetti:nth-child(3) {
+          animation-delay: 0.08s;
+        }
+
+        .first-place:hover .confetti:nth-child(4) {
+          animation-delay: 0.14s;
+        }
+
+        .first-place:hover .confetti:nth-child(5) {
+          animation-delay: 0.2s;
+        }
+
+        .first-place:hover .confetti:nth-child(6) {
+          animation-delay: 0.26s;
+        }
+
+        @keyframes confetti-pop {
+          0% {
+            opacity: 1;
+            transform: translate(-50%, 0) scale(1);
+            box-shadow:
+              10px -10px red,
+              -10px -15px lime,
+              20px -20px cyan,
+              -20px -25px orange,
+              0 -30px magenta;
+          }
+          100% {
+            opacity: 0;
+            transform: translate(-50%, -36px) scale(0.5);
+            box-shadow:
+              20px -30px red,
+              -20px -40px lime,
+              35px -45px cyan,
+              -35px -50px orange,
+              0 -60px magenta;
+          }
         }
 
         @media (max-width: 768px) {
@@ -257,6 +376,10 @@ export default function UsersTable() {
           .search-input,
           .filter-select {
             width: 100%;
+          }
+
+          .users-container {
+            overflow-x: auto;
           }
 
           .users-table th,

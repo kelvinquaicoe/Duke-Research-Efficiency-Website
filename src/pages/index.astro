@@ -1,13 +1,13 @@
 ---
+import Layout from "../layouts/Layout.astro";
 import GamePlaceholder from "../components/GamePlaceholder.jsx";
-import LeaderBoard from "../components/LeaderBoard.astro";
-import LoserBoard from "../components/LoserBoard.astro";
 ---
+<Layout>
 <header class="header">
 	<div class="header-brand">
 		<img class="logo" src="/Lboard_Logo.png" alt="LBoard Logo" />
 		<div class="brand-text">
-			<h1>Cluzster Command</h1>
+			<h1>Cluster _cmd</h1>
 			<p class="brand-subtitle">Optimize jobs. Save GPU hours. Move the snail.</p>
 		</div>
 	</div>
@@ -40,8 +40,15 @@ import LoserBoard from "../components/LoserBoard.astro";
 
   <section id="leader-section" class="leader-section">
     <div class="dashboard-card">
-      <LeaderBoard />
-      <h1>Leader Board</h1>
+	  <div class="board-header">
+		  <div>
+			<h1>Leader Board</h1>
+			<p class="board-subtitle">TOP 10 COMMANDERS</p>
+		  </div>
+
+		<span class="live-badge">LIVE</span>
+	  </div>
+      
       <table>
 		<thead>
 			<tr>
@@ -70,69 +77,150 @@ import LoserBoard from "../components/LoserBoard.astro";
 						GPU Hours Gained
 					</span>
 				</th>
+				<th>SCORE</th>
 			</tr>
 		</thead>
 
 		<tbody>
 			<tr class="leader-first">
 				<td>1</td>
-				<td>Hiii Florine</td>
+				<td>Florine</td>
 				<td>95</td>
-				<td>95</td>
+				<td>
+					<div class="gpu-cell">
+						<span>95hrs</span>
+						<div class="gpu-bar">
+							<div class="gpu-fill" data-width="95%" style="width:0"></div>
+						</div>
+					</div>
+				</td>
+				<td>500</td>
 			</tr>
 			<tr class="leader-second">
 				<td>2</td>
 				<td>Best Volleybal Player</td>
 				<td>88</td>
-				<td>95</td>
+				<td>
+					<div class="gpu-cell">
+						<span>90hrs</span>
+						<div class="gpu-bar">
+							<div class="gpu-fill" data-width="90%" style="width:0"></div>
+						</div>
+					</div>
+				</td>
+				<td>500</td>
 			</tr>
 			<tr class="leader-third">
 				<td>3</td>
 				<td>tallest Flo</td>
 				<td>92</td>
-				<td>92</td>
+				<td>
+					<div class="gpu-cell">
+						<span>85hrs</span>
+						<div class="gpu-bar">
+							<div class="gpu-fill" data-width="85%" style="width:0"></div>
+						</div>
+					</div>
+				</td>
+				<td>500</td>
 			</tr>
 			<tr>
 				<td>4</td>
 				<td>Quantum Quinton</td>
 				<td>90</td>
-				<td>88</td>
+				<td>
+					<div class="gpu-cell">
+						<span>80hrs</span>
+						<div class="gpu-bar">
+							<div class="gpu-fill" data-width="80%" style="width:0"></div>
+						</div>
+					</div>
+				</td>
+				<td>500</td>
 			</tr>
 			<tr>
 				<td>5</td>
 				<td>Data Dana</td>
 				<td>88</td>
-				<td>86</td>
+				<td>
+					<div class="gpu-cell">
+						<span>75hrs</span>
+						<div class="gpu-bar">
+							<div class="gpu-fill" data-width="75%" style="width:0"></div>
+						</div>
+					</div>
+				</td>
+				<td>500</td>
 			</tr>
 			<tr>
 				<td>6</td>
 				<td>Algorithm Aiden</td>
 				<td>86</td>
-				<td>84</td>
+				<td>
+					<div class="gpu-cell">
+						<span>70hrs</span>
+						<div class="gpu-bar">
+							<div class="gpu-fill" data-width="70%" style="width:0"></div>
+						</div>
+					</div>
+				</td>
+				<td>500</td>
 			</tr>
 			<tr>
 				<td>7</td>
 				<td>Pipeline Priya</td>
 				<td>84</td>
-				<td>82</td>
+				<td>
+					<div class="gpu-cell">
+						<span>68hrs</span>
+						<div class="gpu-bar">
+							<div class="gpu-fill" data-width="68%" style="width:0"></div>
+						</div>
+					</div>
+				</td>
+				<td>500</td>
 			</tr>
 			<tr>
 				<td>8</td>
 				<td>Kernel Ken</td>
 				<td>82</td>
-				<td>80</td>
+				<td>
+					<div class="gpu-cell">
+						<span>65hrs</span>
+						<div class="gpu-bar">
+							<div class="gpu-fill" data-width="65%" style="width:0"></div>
+						</div>
+					</div>
+				</td>
+				<td>500</td>
 			</tr>
 			<tr>
 				<td>9</td>
 				<td>Tensor Tessa</td>
 				<td>80</td>
-				<td>78</td>
+				<td>
+					<div class="gpu-cell">
+						<span>60hrs</span>
+						<div class="gpu-bar">
+							<div class="gpu-fill" data-width="60%" style="width:0"></div>
+						</div>
+					</div>
+				</td>
+				<td>500</td>
 			</tr>
 			<tr>
 				<td>10</td>
 				<td>Vector Vance</td>
 				<td>78</td>
-				<td>76</td>
+				<td>
+					<div class="gpu-cell">
+						<span>55hrs</span>
+						<div class="gpu-bar">
+							<div class="gpu-fill" data-width="55%" style="width:0"></div>
+						</div>
+					</div>
+				</td>
+				<td>500</td>
 			</tr>
 		</tbody>
 	</table>
@@ -141,8 +229,15 @@ import LoserBoard from "../components/LoserBoard.astro";
 
   <section id="loser-section" class="loser-section">
     <div class="dashboard-card">
-      <LoserBoard />
-      <h1>Loser Board</h1>
+	  <div class="board-header">
+		  <div>
+			<h1>Loser Board</h1>
+			<p class="board-subtitle">BOTTOM 10 COMMANDERS</p>
+		  </div>
+
+		<span class="live-badge">LIVE</span>
+	  </div>
+
       <table>
 		<thead>
 			<tr>
@@ -171,6 +266,7 @@ import LoserBoard from "../components/LoserBoard.astro";
 						GPU Hours Gained
 					</span>
 				</th>
+				<th>SCORE</th>
 			</tr>
 		</thead>
 
@@ -179,67 +275,168 @@ import LoserBoard from "../components/LoserBoard.astro";
 				<td>1</td>
 				<td>Aaron</td>
 				<td>95</td>
-				<td>95</td>
+				<td>
+					<div class="gpu-cell">
+						<span>50hrs</span>
+						<div class="gpu-bar">
+							<div class="gpu-fill gold" data-width="50%" style="width:0"></div>
+						</div>
+					</div>
+				</td>
+				<td>5000</td>
 			</tr>
 			<tr class="loser-second-worst">
 				<td>2</td>
 				<td>Ian</td>
 				<td>88</td>
-				<td>95</td>
+				<td>
+					<div class="gpu-cell">
+						<span>45hrs</span>
+						<div class="gpu-bar">
+							<div class="gpu-fill gold" data-width="45%" style="width:0"></div>
+						</div>
+					</div>
+				</td>
+				<td>4200</td>
 			</tr>
 			<tr class="loser-third-worst">
 				<td>3</td>
 				<td>Theo</td>
 				<td>92</td>
-				<td>92</td>
+				<td>
+					<div class="gpu-cell">
+						<span>37hrs</span>
+						<div class="gpu-bar">
+							<div class="gpu-fill gold" data-width="37%" style="width:0"></div>
+						</div>
+					</div>
+				</td>
+				<td>3900</td>
 			</tr>
 			<tr>
 				<td>4</td>
 				<td>Laggy Lana</td>
 				<td>70</td>
-				<td>68</td>
+				<td>
+					<div class="gpu-cell">
+						<span>30hrs</span>
+						<div class="gpu-bar">
+							<div class="gpu-fill gold" data-width="30%" style="width:0"></div>
+						</div>
+					</div>
+				</td>
+				<td>500</td>
 			</tr>
 			<tr>
 				<td>5</td>
 				<td>Crash Carl</td>
 				<td>68</td>
-				<td>65</td>
+				<td>
+					<div class="gpu-cell">
+						<span>35hrs</span>
+						<div class="gpu-bar">
+							<div class="gpu-fill gold" data-width="35%" style="width:0"></div>
+						</div>
+					</div>
+				</td>
+				<td>500</td>
 			</tr>
 			<tr>
 				<td>6</td>
 				<td>Stuck Steve</td>
 				<td>66</td>
-				<td>62</td>
+				<td>
+					<div class="gpu-cell">
+						<span>30hrs</span>
+						<div class="gpu-bar">
+							<div class="gpu-fill gold" data-width="30%" style="width:0"></div>
+						</div>
+					</div>
+				</td>
+				<td>500</td>
 			</tr>
 			<tr>
 				<td>7</td>
 				<td>Frozen Fran</td>
 				<td>64</td>
-				<td>60</td>
+				<td>
+					<div class="gpu-cell">
+						<span>20hrs</span>
+						<div class="gpu-bar">
+							<div class="gpu-fill gold" data-width="20%" style="width:0"></div>
+						</div>
+					</div>
+				</td>
+				<td>500</td>
 			</tr>
 			<tr>
 				<td>8</td>
 				<td>Snail Nate</td>
 				<td>62</td>
+				<td>
+					<div class="gpu-cell">
+						<span>10hrs</span>
+						<div class="gpu-bar">
+							<div class="gpu-fill gold" data-width="10%" style="width:0"></div>
+						</div>
+					</div>
+				</td>
 				<td>58</td>
 			</tr>
 			<tr>
 				<td>9</td>
 				<td>Buffer Beth</td>
 				<td>60</td>
-				<td>55</td>
+				<td>
+					<div class="gpu-cell">
+						<span>5hrs</span>
+						<div class="gpu-bar">
+							<div class="gpu-fill gold" data-width="5%" style="width:0"></div>
+						</div>
+					</div>
+				</td>
+				<td>500</td>
 			</tr>
 			<tr>
 				<td>10</td>
 				<td>Timeout Tim</td>
 				<td>58</td>
-				<td>52</td>
+				<td>
+					<div class="gpu-cell">
+						<span>3hrs</span>
+						<div class="gpu-bar">
+							<div class="gpu-fill gold" data-width="3%" style="width:0"></div>
+						</div>
+					</div>
+				</td>
+				<td>500</td>
 			</tr>
 		</tbody>
 	</table>
     </div>
   </section>
+
+  <script>
+  document.addEventListener("DOMContentLoaded", () => {
+	const observer = new IntersectionObserver(entries => {
+		entries.forEach(entry => {
+			if (!entry.isIntersecting) return;
+
+			entry.target.querySelectorAll(".gpu-fill").forEach(bar => {
+				setTimeout(() => {
+					bar.style.width = bar.dataset.width;
+				}, 150);
+			});
+		});
+  });
+
+	document.querySelectorAll(".dashboard-card").forEach(card => {
+		observer.observe(card);
+	});
+  });
+  </script>
 </main>
+ </Layout>
 
 <style>
   main {
@@ -249,6 +446,16 @@ import LoserBoard from "../components/LoserBoard.astro";
   section {
     min-height: 100vh;
     padding: 1rem 2rem;
+  }
+
+  :root {
+  --bg: #111;
+
+  --gpu-primary: #53d5fd;
+  --gpu-glow: #b6eeff;
+
+  --cpu-primary: #d5ad4d;
+  --cpu-glow: #ffebaf;
   }
 
   .game-section {
@@ -261,13 +468,13 @@ import LoserBoard from "../components/LoserBoard.astro";
   }
 
   .leader-section {
-    background: #f4f4f4;
-	color: #333;
+    background: #111;
+	color: #b6eeff;
   }
 
   .loser-section {
-    background: #e5e5e5;
-	color: #333;
+    background: #111;
+	color: #ffebaf;
   }
 
   header {
@@ -277,10 +484,104 @@ import LoserBoard from "../components/LoserBoard.astro";
 	align-items: center;
 	padding: 0.5rem 1rem;
 	color: #fff;
-	background: rgba(34, 34, 34, 0.96);
+	background: #061318;
+	border-bottom: 1px solid #53d5fd;
+	box-shadow: 0 0 20px rgba(83, 213, 253, 0.5);
 	min-height: 64px;
 	backdrop-filter: blur(10px);
 	box-sizing: border-box;
+  }
+
+  .board-subtitle {
+	margin: 0 0 1rem;
+	font-family: 'Orbitron', sans-serif;
+	font-size: 0.75rem;
+	letter-spacing: 0.25em;
+	text-transform: uppercase;
+	color: #7a8ba3;
+  }
+
+  .board-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+  }
+
+  .live-badge {
+	padding: 0.35rem 0.8rem;
+	border: 1px solid #53d5fd;
+	color: #53d5fd;
+	border-radius: 999px;
+	font-size: 0.75rem;
+	letter-spacing: 0.15em;
+	box-shadow: 0 0 12px rgba(83,213,253,.25);
+  }
+
+  .live-badge.gold {
+	border-color: #d5ad4d;
+	color: #d5ad4d;
+	box-shadow: 0 0 12px rgba(213,173,77,.25);
+  }
+
+  .live-badge::before {
+	content: "";
+	width: 8px;
+	height: 8px;
+	background: currentColor;
+	border-radius: 50%;
+	display: inline-block;
+	margin-right: 6px;
+	animation: pulse 1.5s infinite;
+  }
+
+  .gpu-fill {
+	height: 100%;
+	width: 0;
+	background: linear-gradient(
+		90deg,
+		#53d5fd,
+		#b6eeff
+	);
+	border-radius: 999px;
+	box-shadow: 0 0 12px #53d5fd;
+	transition: width 1.8s ease-out;
+  }
+
+
+  .gpu-fill.gold {
+	background: linear-gradient(
+		90deg,
+		#d5ad4d,
+		#ffebaf
+	);
+	box-shadow: 0 0 12px #d5ad4d;
+  }
+
+  .gpu-fill {
+	position: relative;
+	overflow: hidden;
+  }
+
+  .gpu-fill::after {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: -100%;
+	width: 100%;
+	height: 100%;
+	background: rgba(255,255,255,.35);
+	animation: sweep 2.5s infinite;
+  }
+
+  @keyframes sweep {
+	0% { left: -100%; }
+	100% { left: 100%; }
+  }
+
+  @keyframes pulse {
+	0% { opacity: .4; }
+	50% { opacity: 1; }
+	100% { opacity: .4; }
   }
 
   main {
@@ -296,88 +597,70 @@ import LoserBoard from "../components/LoserBoard.astro";
 
   .header-brand h1 {
 	margin: 0;
+	font-family: 'Orbitron', sans-serif;
+	font-size: 2rem;
+	font-weight: 800;
+	letter-spacing: 0.12em;
+	color: #53d5fd;
+	text-shadow:
+		0 0 8px #53d5fd,
+		0 0 20px #53d5fd,
+		0 0 40px rgba(83,213,253,.5);
+	text-transform: uppercase;
   }
 
-	.logo {
-		width: 60px; /* smaller logo to reduce header height */
-		height: 60px;
-		object-fit: contain;
-		flex-shrink: 0;
-	}
-
-  .leader-section h1,
-  .loser-section h1 {
-    margin-top: 0;
-    margin-bottom: 0.5rem;
+  .board-header h1,
+  .live-badge,
+  .header-nav a,
+  .hero-eyebrow {
+	font-family: 'Orbitron', sans-serif;
   }
 
-	/* header nav (moved into header) */
-	.header-nav {
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		gap: 3.5rem; /* increased spacing between links */
-		justify-self: center;
-	}
+  .board-header h1 {
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+  }
 
-	nav a{
-		display: inline-block;
-		color: white;
-		text-decoration: none;
-		transition: all 0.2s ease;
-		padding: 0.4rem 0.7rem; /* smaller padding to keep header compact */
-		border-radius: 6px;
-	}
+  .header-nav a {
+	display: inline-block;
+	color: white;
+	text-decoration: none;
+	transition: all 0.2s ease;
+	padding: 0.4rem 0.7rem;
+	border-radius: 6px;
+	font-size: 0.8rem;
+	letter-spacing: 0.15em;
+	text-transform: uppercase;
+  }
 
-  nav a:hover {
-	background: #717171;
+  .header-nav a:hover {
+	background: rgba(83, 213, 253, 0.15);
+	color: #b6eeff;
+	box-shadow: 0 0 12px rgba(83, 213, 253, 0.35);
 	transform: translateY(-2px);
 	padding: 0.75rem 1.25rem;
 	border-radius: 8px;
-
   }
 
-  nav a.leader-link:hover {
-	background: rgba(22, 163, 74, 0.2);
+  .header-nav a.leader-link:hover {
+	background: rgba(83, 213, 253, 0.15);
 	transform: translateY(-2px);
 	border-radius: 8px;
 	color: white;
   }
 
-  nav a.loser-link:hover {
-	background: rgba(220, 38, 38, 0.2);
+  .header-nav a.loser-link:hover {
+	background: rgba(213, 173, 77, 0.15);
 	transform: translateY(-2px);
 	border-radius: 8px;
 	color: white;
-  }
-
-  .game-wrapper {
-	display: flex;
-	flex-direction: column;
-	gap: 1.25rem;
-	max-width: 950px;
-	margin: 0 auto;
-  }
-
-  .brand-text {
-    display: flex;
-    flex-direction: column;
-    gap: 0.2rem;
   }
 
   .brand-subtitle {
     margin: 0;
-    color: #a7f3d0;
+    color: #d5ad4d;
     font-size: 0.82rem;
     line-height: 1.3;
-  }
-
-  .hero-card {
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 24px;
-    padding: 1.5rem;
-    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.15);
   }
 
   .hero-eyebrow {
@@ -385,7 +668,7 @@ import LoserBoard from "../components/LoserBoard.astro";
     text-transform: uppercase;
     letter-spacing: 0.18em;
     font-size: 0.8rem;
-    color: #86efac;
+    color: #d5ad4d;
   }
 
   .hero-copy {
@@ -409,10 +692,10 @@ import LoserBoard from "../components/LoserBoard.astro";
 
 	padding: 0.5rem 0.85rem;
 
-	background: rgba(34, 197, 94, 0.14);
-	border: 1px solid rgba(34, 197, 94, 0.25);
+	background: rgba(83, 213, 253, 0.12);
+	border: 1px solid rgba(83, 213, 253, 0.35);
 	border-radius: 12px;
-	box-shadow: 0 0 18px rgba(34, 197, 94, 0.12);
+	box-shadow: 0 0 18px rgba(83, 213, 253, 0.12);
 	max-width: 420px;
   }
 
@@ -420,15 +703,16 @@ import LoserBoard from "../components/LoserBoard.astro";
 	width: 8px;
 	height: 8px;
 
-	background: #22c55e;
+	background: #53d5fd;
 	border-radius: 50%;
-	box-shadow: 0 0 8px rgba(34, 197, 94, 0.7);
+	box-shadow: 0 0 8px rgba(83, 213, 253, 0.7);
   }
 
   .dashboard-card {
+	backdrop-filter: blur(8px);
     margin: 2rem auto;
     padding: 1.5rem;
-    background: white;
+    background: #061318;
     border-radius: 24px;
     box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
     max-width: 960px;
@@ -439,23 +723,28 @@ import LoserBoard from "../components/LoserBoard.astro";
   }
 
   .leader-section .dashboard-card {
-    background: #f6fffa;
+	background: #061318;
+	border: 1px solid #53d5fd;
+	box-shadow: 0 0 20px rgba(83,213,253,.15);
   }
 
   .loser-section .dashboard-card {
-    background: #fff1f2;
+    background: #111;
+	border: 1px solid #d5ad4d;
   }
 
   .leader-section table th,
   .leader-section table thead th {
-    background: #16a34a !important;
-    color: white !important;
+    background: rgba(83, 213, 253, 0.08) !important;
+	border-bottom: 1px solid rgba(83, 213, 253, 0.12);
+    color: #53d5fd !important;
   }
 
   .loser-section table th,
   .loser-section table thead th {
-    background: #dc2626 !important;
-    color: white !important;
+    background: #432d00 !important;
+    color: #d5ad4d !important;
+	border-bottom: 1px solid rgba(213, 173, 77, 0.12);
   }
 
   /*table styles*/
@@ -464,7 +753,8 @@ import LoserBoard from "../components/LoserBoard.astro";
 	max-width: 900px;
 	margin: 2rem auto;
 	border-collapse: collapse;
-	background: white;
+	background: #061318;
+	color: #b6eeff;
 	border-radius: 16px;
 	overflow: hidden;
 	margin: 2rem auto;
@@ -474,7 +764,7 @@ import LoserBoard from "../components/LoserBoard.astro";
 	td {
 	padding: 1rem 1.25rem;
 	text-align:center;
-	border-bottom: 1px solid #ddd;
+	border-bottom: 1px solid rgba(83, 213, 253, 0.12);
   }
 
 	th {
@@ -496,10 +786,11 @@ import LoserBoard from "../components/LoserBoard.astro";
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	background: white;
+	background: rgba(83, 213, 253, 0.12);
+	border: 1px solid #53d5fd;
 	border-radius: 50%;
 	overflow: hidden;
-	box-shadow: 0 0 0 1px rgba(255,255,255,0.1);
+	box-shadow: 0 0 0 1px rgba(83,213,253,0.25);
   }
 
   .table-icon {
@@ -580,6 +871,259 @@ import LoserBoard from "../components/LoserBoard.astro";
   .loser-third-worst td:first-child {
     font-weight: 700;
   }
+
+  .gpu-bar {
+	width: 120px;
+	height: 8px;
+	background: rgba(255,255,255,.08);
+	border-radius: 999px;
+	overflow: hidden;
+}
+
+  @keyframes confetti-burst {
+    0% {
+      opacity: 0;
+      transform: translate(0, 0) scale(0.75);
+    }
+    40% {
+      opacity: 1;
+      transform: translate(8px, -8px) scale(1);
+    }
+    80% {
+      transform: translate(14px, -18px) scale(1);
+    }
+    100% {
+      opacity: 0;
+      transform: translate(18px, -28px) scale(0.8);
+    }
+  }
+
+  .loser-worst,
+  .loser-second-worst,
+  .loser-third-worst {
+    background: transparent;
+    box-shadow: none;
+  }
+
+  tbody tr {
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+  }
+
+  .leader-section tbody tr:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(34, 34, 34, 0.08);
+  }
+
+  .loser-section tbody tr:hover {
+    transform: translateY(0);
+    background-color: rgba(0, 0, 0, 0.04);
+  }
+
+  .loser-section tbody tr:hover {
+    animation: loser-shake 0.35s ease-in-out;
+  }
+
+  @keyframes loser-shake {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(-2px); }
+    50% { transform: translateX(2px); }
+    75% { transform: translateX(-1px); }
+    100% { transform: translateX(0); }
+  }
+
+	tbody tr:last-child td {
+	border-bottom: none;
+  }
+	.logo {
+		width: 60px; /* smaller logo to reduce header height */
+		height: 60px;
+		object-fit: contain;
+		flex-shrink: 0;
+	}
+
+  .leader-section h1,
+  .loser-section h1 {
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+  }
+
+	/* header nav (moved into header) */
+	.header-nav {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		gap: 3.5rem; /* increased spacing between links */
+		justify-self: center;
+	}
+
+  .game-wrapper {
+	display: flex;
+	flex-direction: column;
+	gap: 1.25rem;
+	max-width: 950px;
+	margin: 0 auto;
+  }
+
+  .brand-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  .hero-card {
+    background: #061318;
+    border: 1px solid #53d5fd;
+    border-radius: 24px;
+    padding: 1.5rem;
+    box-shadow: 0 0px 25px rgba(83, 213, 253, 0.15);
+  }
+
+  .leader-section table th,
+  .leader-section table thead th {
+    background: rgba(83, 213, 253, 0.08) !important;
+	border-bottom: 1px solid rgba(83, 213, 253, 0.12);
+    color: #53d5fd !important;
+  }
+
+  .loser-section table th,
+  .loser-section table thead th {
+    background: #432d00 !important;
+    color: #d5ad4d !important;
+	border-bottom: 1px solid rgba(213, 173, 77, 0.12);
+  }
+
+  /*table styles*/
+  table {
+	width: 100%;
+	max-width: 900px;
+	margin: 2rem auto;
+	border-collapse: collapse;
+	background: #061318;
+	color: #b6eeff;
+	border-radius: 16px;
+	overflow: hidden;
+	margin: 2rem auto;
+  }
+
+	th,
+	td {
+	padding: 1rem 1.25rem;
+	text-align:center;
+	border-bottom: 1px solid rgba(83, 213, 253, 0.12);
+  }
+
+	th {
+	background: #222;
+	color: white;
+	font-weight: 700;
+  }
+
+  .table-label {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.5rem;
+	white-space: nowrap;
+  }
+
+  .table-icon-bg {
+	width: 36px;
+	height: 36px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	background: rgba(83, 213, 253, 0.12);
+	border: 1px solid #53d5fd;
+	border-radius: 50%;
+	overflow: hidden;
+	box-shadow: 0 0 0 1px rgba(83,213,253,0.25);
+  }
+
+  .table-icon {
+	width: 100%;
+	height: 100%;
+	display: block;
+	object-fit: cover;
+  }
+
+  .leader-first,
+  .leader-second,
+  .leader-third {
+    background: transparent;
+    color: inherit;
+    box-shadow: none;
+  }
+
+  .leader-first td:first-child::before {
+    content: '🏆';
+    margin-right: 0.35rem;
+  }
+  .leader-second td:first-child::before {
+    content: '🥈';
+    margin-right: 0.35rem;
+  }
+  .leader-third td:first-child::before {
+    content: '🥉';
+    margin-right: 0.35rem;
+  }
+  .leader-first td:first-child,
+  .leader-second td:first-child,
+  .leader-third td:first-child {
+    font-weight: 700;
+    position: relative;
+  }
+
+  .leader-first td:first-child {
+    overflow: visible;
+  }
+
+  .leader-first td:first-child::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 0;
+    height: 0;
+    opacity: 0;
+    box-shadow:
+      -10px -10px 0 0 #facc15,
+      10px -12px 0 0 #f97316,
+      -8px 8px 0 0 #fde68a,
+      12px 6px 0 0 #ef4444,
+      0px 12px 0 0 #a855f7;
+    transform: translate(-50%, -50%) scale(0.5);
+    pointer-events: none;
+  }
+
+  .leader-first:hover td:first-child::after {
+    opacity: 1;
+    animation: confetti-burst 0.65s ease-out forwards;
+  }
+
+  .loser-worst td:first-child::before {
+    content: '⚠️';
+    margin-right: 0.35rem;
+  }
+  .loser-second-worst td:first-child::before {
+    content: '🐌';
+    margin-right: 0.35rem;
+  }
+  .loser-third-worst td:first-child::before {
+    content: '🐌';
+    margin-right: 0.35rem;
+  }
+  .loser-worst td:first-child,
+  .loser-second-worst td:first-child,
+  .loser-third-worst td:first-child {
+    font-weight: 700;
+  }
+
+  .gpu-bar {
+	width: 120px;
+	height: 8px;
+	background: rgba(255,255,255,.08);
+	border-radius: 999px;
+	overflow: hidden;
+}
 
   @keyframes confetti-burst {
     0% {

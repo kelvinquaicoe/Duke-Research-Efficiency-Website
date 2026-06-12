@@ -8,7 +8,7 @@ import UsersTable from '../components/UsersTable.jsx';
     <div class="header-brand">
       <img class="logo" src="/Lboard_Logo.png" alt="LBoard Logo" />
       <div class="brand-text">
-        <h1>Cluzster Command</h1>
+        <h1>Cluster Command</h1>
         <p class="brand-subtitle">Optimize jobs. Save GPU hours. Move the snail.</p>
       </div>
     </div>
@@ -23,8 +23,12 @@ import UsersTable from '../components/UsersTable.jsx';
   <main class="users-main">
     <section class="users-section">
       <div class="section-header">
-        <h2>All Users</h2>
-        <p class="section-description">Search and filter all users by efficiency, GPU hours, and more.</p>
+        <div>
+          <p class="section-eyebrow">Roster Index</p>
+          <h2>All Users</h2>
+          <p class="section-description">Search and filter all users by efficiency, GPU hours, and more.</p>
+        </div>
+        <span class="live-badge gold">Live Roster</span>
       </div>
       <UsersTable client:load />
     </section>
@@ -39,7 +43,9 @@ import UsersTable from '../components/UsersTable.jsx';
     align-items: center;
     padding: 0.5rem 1rem;
     color: #fff;
-    background: rgba(34, 34, 34, 0.96);
+    background: #061318;
+    border-bottom: 1px solid #53d5fd;
+    box-shadow: 0 0 20px rgba(83, 213, 253, 0.5);
     min-height: 64px;
     backdrop-filter: blur(10px);
     box-sizing: border-box;
@@ -54,6 +60,16 @@ import UsersTable from '../components/UsersTable.jsx';
 
   .header-brand h1 {
     margin: 0;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    color: #53d5fd;
+    text-shadow:
+      0 0 8px #53d5fd,
+      0 0 20px #53d5fd,
+      0 0 40px rgba(83,213,253,.5);
+    text-transform: uppercase;
   }
 
   .logo {
@@ -71,7 +87,7 @@ import UsersTable from '../components/UsersTable.jsx';
 
   .brand-subtitle {
     margin: 0;
-    color: #a7f3d0;
+    color: #d5ad4d;
     font-size: 0.82rem;
     line-height: 1.3;
   }
@@ -86,6 +102,10 @@ import UsersTable from '../components/UsersTable.jsx';
 
   .header-nav a {
     display: inline-block;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.8rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
     color: white;
     text-decoration: none;
     transition: all 0.2s ease;
@@ -94,8 +114,12 @@ import UsersTable from '../components/UsersTable.jsx';
   }
 
   .header-nav a:hover {
-    background: #717171;
+    background: rgba(83, 213, 253, 0.15);
+    color: #b6eeff;
+    box-shadow: 0 0 12px rgba(83, 213, 253, 0.35);
     transform: translateY(-2px);
+    padding: 0.75rem 1.25rem;
+    border-radius: 8px;
   }
 
   .header-nav .leader-link {
@@ -103,7 +127,7 @@ import UsersTable from '../components/UsersTable.jsx';
   }
 
   .header-nav .leader-link:hover {
-    background: rgba(22, 163, 74, 0.2);
+    background: rgba(83, 213, 253, 0.15);
     color: white;
   }
 
@@ -112,14 +136,17 @@ import UsersTable from '../components/UsersTable.jsx';
   }
 
   .header-nav .loser-link:hover {
-    background: rgba(220, 38, 38, 0.2);
+    background: rgba(213, 173, 77, 0.15);
     color: white;
   }
 
   .users-main {
     margin: 0;
     min-height: 100vh;
-    background: #f4f4f4;
+    background:
+      radial-gradient(circle at top, rgba(83, 213, 253, 0.12), transparent 35%),
+      radial-gradient(circle at bottom right, rgba(213, 173, 77, 0.1), transparent 30%),
+      #111;
   }
 
   .users-section {
@@ -129,25 +156,86 @@ import UsersTable from '../components/UsersTable.jsx';
   }
 
   .section-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1.5rem;
     margin-bottom: 2rem;
-    text-align: center;
+    padding: 1.5rem;
+    border: 1px solid rgba(83, 213, 253, 0.28);
+    border-radius: 24px;
+    background: #061318;
+    box-shadow: 0 0 24px rgba(83, 213, 253, 0.12);
+  }
+
+  .section-eyebrow {
+    margin: 0 0 0.6rem;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.78rem;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: #d5ad4d;
   }
 
   .section-header h2 {
     margin: 0 0 0.5rem;
     font-size: 2rem;
-    color: #222;
+    font-family: 'Orbitron', sans-serif;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #53d5fd;
+    text-shadow:
+      0 0 8px rgba(83, 213, 253, 0.6),
+      0 0 18px rgba(83, 213, 253, 0.18);
   }
 
   .section-description {
     margin: 0;
-    color: #666;
+    color: #cbd5e1;
     font-size: 1rem;
+    max-width: 40rem;
+    line-height: 1.7;
+  }
+
+  .live-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.45rem 0.9rem;
+    border: 1px solid #53d5fd;
+    color: #53d5fd;
+    border-radius: 999px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.74rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    box-shadow: 0 0 12px rgba(83, 213, 253, 0.25);
+    white-space: nowrap;
+  }
+
+  .live-badge::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+    box-shadow: 0 0 10px currentColor;
+  }
+
+  .live-badge.gold {
+    border-color: #d5ad4d;
+    color: #d5ad4d;
+    box-shadow: 0 0 12px rgba(213, 173, 77, 0.25);
   }
 
   @media (max-width: 768px) {
     .header-nav {
       gap: 1.5rem;
+    }
+
+    .section-header {
+      flex-direction: column;
+      align-items: flex-start;
     }
 
     .section-header h2 {

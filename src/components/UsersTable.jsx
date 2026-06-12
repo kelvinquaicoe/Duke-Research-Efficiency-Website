@@ -110,19 +110,35 @@ export default function UsersTable() {
           </tr>
         </thead>
         <tbody>
-          {filteredAndSortedUsers.map((user, index) => (
-            <tr key={user.id} className={`user-row ${user.type}`}>
-              <td>{index + 1}</td>
-              <td>{user.name}</td>
-              <td>{user.efficiency}</td>
-              <td>{user.gpuHours}</td>
-              <td>
-                <span className={`status-badge ${user.type}`}>
-                  {user.type === 'leader' ? '⭐ Top Performer' : '📊 Active'}
-                </span>
-              </td>
-            </tr>
-          ))}
+          {filteredAndSortedUsers.map((user, index) => {
+            const isFirstLeader = index === 0 && user.type === 'leader';
+            return (
+              <tr key={user.id} className={`user-row ${user.type} ${isFirstLeader ? 'first-place' : ''}`}>
+                <td>
+                  {isFirstLeader ? (
+                    <div className="trophy-wrap">
+                      🏆
+                      <div className="confetti"></div>
+                      <div className="confetti"></div>
+                      <div className="confetti"></div>
+                      <div className="confetti"></div>
+                      <div className="confetti"></div>
+                    </div>
+                  ) : (
+                    index + 1
+                  )}
+                </td>
+                <td>{user.name}</td>
+                <td>{user.efficiency}</td>
+                <td>{user.gpuHours}</td>
+                <td>
+                  <span className={`status-badge ${user.type}`}>
+                    {user.type === 'leader' ? '⭐ Top Performer' : '📊 Active'}
+                  </span>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
 
@@ -246,6 +262,75 @@ export default function UsersTable() {
         .status-badge.loser {
           background-color: #fed7aa;
           color: #92400e;
+        }
+
+        .trophy-wrap {
+          position: relative;
+          display: inline-flex;
+          align-items: center;
+          gap: 0.35rem;
+          margin-right: 0.2rem;
+          font-size: 1.1rem;
+          overflow: visible;
+        }
+
+        .confetti {
+          position: absolute;
+          left: 50%;
+          top: 0;
+          width: 6px;
+          height: 6px;
+          background: gold;
+          opacity: 0;
+          border-radius: 50%;
+          pointer-events: none;
+        }
+
+        .first-place:hover .confetti {
+          animation: confetti-pop 0.6s ease-out forwards;
+        }
+
+        .first-place:hover .confetti:nth-child(2) {
+          animation-delay: 0.02s;
+        }
+
+        .first-place:hover .confetti:nth-child(3) {
+          animation-delay: 0.08s;
+        }
+
+        .first-place:hover .confetti:nth-child(4) {
+          animation-delay: 0.14s;
+        }
+
+        .first-place:hover .confetti:nth-child(5) {
+          animation-delay: 0.2s;
+        }
+
+        .first-place:hover .confetti:nth-child(6) {
+          animation-delay: 0.26s;
+        }
+
+        @keyframes confetti-pop {
+          0% {
+            opacity: 1;
+            transform: translate(-50%, 0) scale(1);
+            box-shadow:
+              10px -10px red,
+              -10px -15px lime,
+              20px -20px cyan,
+              -20px -25px orange,
+              0 -30px magenta;
+          }
+          100% {
+            opacity: 0;
+            transform: translate(-50%, -36px) scale(0.5);
+            box-shadow:
+              20px -30px red,
+              -20px -40px lime,
+              35px -45px cyan,
+              -35px -50px orange,
+              0 -60px magenta;
+          }
         }
 
         @media (max-width: 768px) {

@@ -7,7 +7,7 @@ import LoserBoard from "../components/LoserBoard.astro";
 	<div class="header-brand">
 		<img class="logo" src="/Lboard_Logo.png" alt="LBoard Logo" />
 		<div class="brand-text">
-			<h1>Cluzster Command</h1>
+			<h1>Cluster _cmd</h1>
 			<p class="brand-subtitle">Optimize jobs. Save GPU hours. Move the snail.</p>
 		</div>
 	</div>
@@ -251,6 +251,16 @@ import LoserBoard from "../components/LoserBoard.astro";
     padding: 1rem 2rem;
   }
 
+  :root {
+  --bg: #111;
+
+  --gpu-primary: #53d5fd;
+  --gpu-glow: #b6eeff;
+
+  --cpu-primary: #d5ad4d;
+  --cpu-glow: #ffebaf;
+  }
+
   .game-section {
     display: flex;
     align-items: flex-start;
@@ -261,13 +271,13 @@ import LoserBoard from "../components/LoserBoard.astro";
   }
 
   .leader-section {
-    background: #f4f4f4;
-	color: #333;
+    background: #111;
+	color: #b6eeff;
   }
 
   .loser-section {
-    background: #e5e5e5;
-	color: #333;
+    background: #111;
+	color: #ffebaf;
   }
 
   header {
@@ -277,7 +287,9 @@ import LoserBoard from "../components/LoserBoard.astro";
 	align-items: center;
 	padding: 0.5rem 1rem;
 	color: #fff;
-	background: rgba(34, 34, 34, 0.96);
+	background: #061318;
+	border-bottom: 1px solid #53d5fd;
+	box-shadow: 0 0 20px rgba(83, 213, 253, 0.5);
 	min-height: 64px;
 	backdrop-filter: blur(10px);
 	box-sizing: border-box;
@@ -295,6 +307,10 @@ import LoserBoard from "../components/LoserBoard.astro";
   }
 
   .header-brand h1 {
+	color: #b6eeff;
+	text-shadow: 
+		0 0 10px #53d5fd, 
+		0 0 20px #53d5fd;
 	margin: 0;
   }
 
@@ -330,7 +346,9 @@ import LoserBoard from "../components/LoserBoard.astro";
 	}
 
   nav a:hover {
-	background: #717171;
+	background: rgba(83, 213, 253, 0.15);
+	color: #b6eeff;
+	box-shadow: 0 0 12px rgba(83, 213, 253, 0.35);
 	transform: translateY(-2px);
 	padding: 0.75rem 1.25rem;
 	border-radius: 8px;
@@ -373,11 +391,11 @@ import LoserBoard from "../components/LoserBoard.astro";
   }
 
   .hero-card {
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: #061318;
+    border: 1px solid #53d5fd;
     border-radius: 24px;
     padding: 1.5rem;
-    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 0px 25px rgba(83, 213, 253, 0.15);
   }
 
   .hero-eyebrow {
@@ -409,10 +427,10 @@ import LoserBoard from "../components/LoserBoard.astro";
 
 	padding: 0.5rem 0.85rem;
 
-	background: rgba(34, 197, 94, 0.14);
-	border: 1px solid rgba(34, 197, 94, 0.25);
+	background: rgba(83, 213, 253, 0.12);
+	border: 1px solid rgba(83, 213, 253, 0.35);
 	border-radius: 12px;
-	box-shadow: 0 0 18px rgba(34, 197, 94, 0.12);
+	box-shadow: 0 0 18px rgba(83, 213, 253, 0.12);
 	max-width: 420px;
   }
 
@@ -420,15 +438,15 @@ import LoserBoard from "../components/LoserBoard.astro";
 	width: 8px;
 	height: 8px;
 
-	background: #22c55e;
+	background: #53d5fd;
 	border-radius: 50%;
-	box-shadow: 0 0 8px rgba(34, 197, 94, 0.7);
+	box-shadow: 0 0 8px rgba(83, 213, 253, 0.7);
   }
 
   .dashboard-card {
     margin: 2rem auto;
     padding: 1.5rem;
-    background: white;
+    background: #061318;
     border-radius: 24px;
     box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
     max-width: 960px;
@@ -439,23 +457,28 @@ import LoserBoard from "../components/LoserBoard.astro";
   }
 
   .leader-section .dashboard-card {
-    background: #f6fffa;
+	background: #061318;
+	border: 1px solid #53d5fd;
+	box-shadow: 0 0 20px rgba(83,213,253,.15);
   }
 
   .loser-section .dashboard-card {
-    background: #fff1f2;
+    background: #1b0e00;
+	border: 1px solid #d5ad4d;
   }
 
   .leader-section table th,
   .leader-section table thead th {
-    background: #16a34a !important;
-    color: white !important;
+    background: rgba(83, 213, 253, 0.08) !important;
+	border-bottom: 1px solid #53d5fd;
+    color: #53d5fd !important;
   }
 
   .loser-section table th,
   .loser-section table thead th {
-    background: #dc2626 !important;
-    color: white !important;
+    background: #432d00 !important;
+    color: #d5ad4d !important;
+	border-bottom: 1px solid #d5ad4d;
   }
 
   /*table styles*/
@@ -464,7 +487,8 @@ import LoserBoard from "../components/LoserBoard.astro";
 	max-width: 900px;
 	margin: 2rem auto;
 	border-collapse: collapse;
-	background: white;
+	background: 061318;
+	color: #b6eeff;
 	border-radius: 16px;
 	overflow: hidden;
 	margin: 2rem auto;

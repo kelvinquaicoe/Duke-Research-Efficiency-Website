@@ -307,11 +307,13 @@ import LoserBoard from "../components/LoserBoard.astro";
   }
 
   .header-brand h1 {
-	color: #b6eeff;
+	color: #53d5fd;
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
 	text-shadow: 
 		0 0 10px #53d5fd, 
-		0 0 20px #53d5fd;
-	margin: 0;
+		0 0 20px #53d5fd,
+		0 0 40px #53d5fd;
   }
 
 	.logo {
@@ -356,14 +358,14 @@ import LoserBoard from "../components/LoserBoard.astro";
   }
 
   nav a.leader-link:hover {
-	background: rgba(22, 163, 74, 0.2);
+	background: rgba(83, 213, 253, 0.15);
 	transform: translateY(-2px);
 	border-radius: 8px;
 	color: white;
   }
 
   nav a.loser-link:hover {
-	background: rgba(220, 38, 38, 0.2);
+	background: rgba(213, 173, 77, 0.15);
 	transform: translateY(-2px);
 	border-radius: 8px;
 	color: white;
@@ -385,7 +387,7 @@ import LoserBoard from "../components/LoserBoard.astro";
 
   .brand-subtitle {
     margin: 0;
-    color: #a7f3d0;
+    color: #d5ad4d;
     font-size: 0.82rem;
     line-height: 1.3;
   }
@@ -403,7 +405,7 @@ import LoserBoard from "../components/LoserBoard.astro";
     text-transform: uppercase;
     letter-spacing: 0.18em;
     font-size: 0.8rem;
-    color: #86efac;
+    color: #d5ad4d;
   }
 
   .hero-copy {
@@ -444,6 +446,7 @@ import LoserBoard from "../components/LoserBoard.astro";
   }
 
   .dashboard-card {
+	backdrop-filter: blur(8px);
     margin: 2rem auto;
     padding: 1.5rem;
     background: #061318;
@@ -463,14 +466,14 @@ import LoserBoard from "../components/LoserBoard.astro";
   }
 
   .loser-section .dashboard-card {
-    background: #1b0e00;
+    background: #111;
 	border: 1px solid #d5ad4d;
   }
 
   .leader-section table th,
   .leader-section table thead th {
     background: rgba(83, 213, 253, 0.08) !important;
-	border-bottom: 1px solid #53d5fd;
+	border-bottom: 1px solid rgba(83, 213, 253, 0.12);
     color: #53d5fd !important;
   }
 
@@ -478,7 +481,7 @@ import LoserBoard from "../components/LoserBoard.astro";
   .loser-section table thead th {
     background: #432d00 !important;
     color: #d5ad4d !important;
-	border-bottom: 1px solid #d5ad4d;
+	border-bottom: 1px solid rgba(213, 173, 77, 0.12);
   }
 
   /*table styles*/
@@ -487,7 +490,7 @@ import LoserBoard from "../components/LoserBoard.astro";
 	max-width: 900px;
 	margin: 2rem auto;
 	border-collapse: collapse;
-	background: 061318;
+	background: #061318;
 	color: #b6eeff;
 	border-radius: 16px;
 	overflow: hidden;
@@ -498,7 +501,7 @@ import LoserBoard from "../components/LoserBoard.astro";
 	td {
 	padding: 1rem 1.25rem;
 	text-align:center;
-	border-bottom: 1px solid #ddd;
+	border-bottom: 1px solid rgba(83, 213, 253, 0.12);
   }
 
 	th {
@@ -520,10 +523,11 @@ import LoserBoard from "../components/LoserBoard.astro";
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	background: white;
+	background: #061318;
+	border: 1px solid #53d5fd;
 	border-radius: 50%;
 	overflow: hidden;
-	box-shadow: 0 0 0 1px rgba(255,255,255,0.1);
+	box-shadow: 0 0 0 1px rgba(83,213,253,0.25);
   }
 
   .table-icon {

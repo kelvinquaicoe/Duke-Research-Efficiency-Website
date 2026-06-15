@@ -1,31 +1,25 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import App from "../game/src/app/App.tsx";
 import "./GamePlaceholder.css";
 
 export default function GamePlaceholder() {
-  const [hasError, setHasError] = useState(false);
+  const [isReady, setIsReady] = useState(false);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setIsReady(true), 250);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   return (
-    <div className="game-wrapper">
-      <div className="game-frame">
-        <iframe
-          className="godot-game"
-          src="/game/index.html"
-          title="Cluster Command Game"
-          onLoad={() => setHasError(false)}
-          onError={() => setHasError(true)}
-        />
-        {hasError && (
-          <div className="game-fallback">
-            <h2>Game not found</h2>
-            <p>
-              The Godot web export is not in place yet. Add the exported files to
-              <code>/public/game/</code> and reload.
-            </p>
-            <p className="hint">
-              Expected files: <code>index.html</code>, <code>index.js</code>, <code>index.wasm</code>, <code>index.pck</code>
-            </p>
-          </div>
-        )}
+    <div className="game-placeholder-wrapper">
+      <div className={`game-placeholder-frame${isReady ? " is-ready" : ""}`}>
+        <div className="game-placeholder-loading" aria-hidden={isReady}>
+          <div className="game-placeholder-loading-title">Loading Cluster Command</div>
+          <div className="game-placeholder-loading-subtitle">Initializing game systems...</div>
+        </div>
+        <div className="game-placeholder-content">
+          <App embedded />
+        </div>
       </div>
     </div>
   );

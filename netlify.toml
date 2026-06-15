@@ -1,5 +1,0 @@
-[[redirects]]
-  from = "/game"
-  to = "/"
-  status = 301
-  force = true

@@ -1,6 +1,7 @@
 import React from 'react';
 import { useDrag } from 'react-dnd';
 import { motion } from 'motion/react';
+import { buildHexPoints } from './hex-points';
 
 export interface Job {
   id: string;
@@ -9,13 +10,6 @@ export interface Job {
   timeLeft: number;
   maxTime: number;
   trait?: string;
-}
-
-function buildHexPoints(cx: number, cy: number, r: number): string {
-  return Array.from({ length: 6 }, (_, i) => {
-    const angle = (i * 60 - 90) * (Math.PI / 180);
-    return `${(cx + r * Math.cos(angle)).toFixed(2)},${(cy + r * Math.sin(angle)).toFixed(2)}`;
-  }).join(' ');
 }
 
 interface HexGemProps {

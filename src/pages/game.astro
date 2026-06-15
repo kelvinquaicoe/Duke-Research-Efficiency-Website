@@ -1,0 +1,27 @@
+---
+import Layout from "../layouts/Layout.astro";
+import GamePlaceholder from "../components/GamePlaceholder.jsx";
+---
+
+<Layout>
+  <section class="game-section">
+    <div class="game-wrapper">
+      <div class="status-banner status-banner-compact">
+        <span class="status-dot"></span>
+        <span>Cluster Utilization: Low</span>
+      </div>
+
+      <div class="hero-card">
+        <p class="hero-eyebrow">Cluster Command</p>
+        <p class="hero-copy">
+          Assign jobs to CPUs and GPUs. The better your efficiency,
+          the faster the snail moves.
+        </p>
+      </div>
+
+      <div class="game-placeholder-card">
+        <GamePlaceholder client:only="react" />
+      </div>
+    </div>
+  </section>
+</Layout>

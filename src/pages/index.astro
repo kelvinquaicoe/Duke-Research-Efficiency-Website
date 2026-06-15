@@ -1,1182 +1,752 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import GamePlaceholder from "../components/GamePlaceholder.jsx";
 ---
 <Layout>
 <header class="header">
-	<div class="header-brand">
-		<img class="logo" src="/Lboard_Logo.png" alt="LBoard Logo" />
-		<div class="brand-text">
-			<h1>Cluster _cmd</h1>
-			<p class="brand-subtitle">Optimize jobs. Save GPU hours. Move the snail.</p>
-		</div>
-	</div>
-	<nav class="header-nav">
-		<a href="#game-section">Game</a>
-		<a class="leader-link" href="#leader-section">Leader Board</a>
-		<a class="loser-link" href="#loser-section">Loser Board</a>
-		<a href="/users">Users</a>
-	</nav>
+  <div class="header-brand">
+    <img class="logo" src="/Lboard_Logo.png" alt="LBoard Logo" />
+    <div class="brand-text">
+      <h1>
+        <span class="cluster-text">Cluster</span>
+        <span class="cmd-text">_cmd</span>
+      </h1>
+      <p class="brand-subtitle">Optimize jobs. Save GPU hours. Move the snail.</p>
+    </div>
+  </div>
+  <nav class="header-nav">
+    <a href="/game">Game</a>
+    <a class="leader-link" href="#leader-section">Leader Board</a>
+    <a class="loser-link" href="#loser-section">Loser Board</a>
+    <a href="/users">Users</a>
+  </nav>
 </header>
 
 <main>
-  <section id="game-section" class="game-section">
-    <div class="game-wrapper">
-      <div class="status-banner status-banner-compact">
-        <span class="status-dot"></span>
-        <span>Cluster Utilization: Low</span>
-      </div>
 
-      <div class="hero-card">
-        <p class="hero-eyebrow">Cluster Command</p>
-        <p class="hero-copy">Assign jobs to CPUs and GPUs. The better your efficiency, the faster the snail moves.</p>
-      </div>
+  <!-- HERO -->
+  <section class="hero">
 
-      <div class="game-placeholder-card">
-        <GamePlaceholder client:only="react" />
+    <!-- LEFT -->
+    <div class="hero-left">
+      <div class="hero-prompt">
+		$ cluster --status <span class="cursor">▮</span>
+	</div>
+	  <h1 class="hero-title"><span>Cluster Analytics</span><br>  <span class="platform">Platform</span></h1>
+	  <p class="hero-tagline">
+		Real time cluster analytics for researchers who care about performance. Command the cluster. 
+		Save GPU hours. Move Slurm forward.
+	  </p>
+      <div class="hero-badges">
+        <span class="sys-badge online">● SYSTEM ONLINE</span>
+        <span class="sys-badge load">LOW LOAD</span>
+      </div>
+      <a href="/game" class="cta-btn">▶ PLAY CLUSTER _cmd</a>
+    </div>
+
+    <!-- RIGHT: Slurm-o dashboard unchanged -->
+    <div class="hero-right">
+      <div class="util-panel blazing">
+        <div class="util-header">
+          <span class="live-dot"></span>
+          LIVE slurm-o
+        </div>
+        <img class="snail-img cruising" src="/snail.png" alt="slurm-o" />
+		<div class="snail-speed">  
+			<span></span>  
+			<span></span>  
+			<span></span>
+		</div>
+        <div class="util-status">BLAZING</div>
+        <div class="util-bar">
+          <div class="util-fill" data-width="90%"></div>
+        </div>
+        <div class="util-labels">
+          <span>CRAWLING</span>
+          <span>68%</span>
+          <span>BLAZING</span>
+        </div>
       </div>
     </div>
   </section>
 
+  <!-- LEADER BOARD -->
   <section id="leader-section" class="leader-section">
     <div class="dashboard-card">
-	  <div class="board-header">
-		  <div>
-			<h1>Leader Board</h1>
-			<p class="board-subtitle">TOP 10 COMMANDERS</p>
-		  </div>
-
-		<span class="live-badge">LIVE</span>
-	  </div>
-      
+      <div class="board-header">
+        <div>
+          <h1>Leader Board</h1>
+          <p class="board-subtitle">TOP 10 COMMANDERS</p>
+        </div>
+        <span class="live-badge">LIVE</span>
+      </div>
       <table>
-		<thead>
-			<tr>
-				<th></th>
-				<th>
-					<span class="table-label">
-						<span class="table-icon-bg">
-							<img class="table-icon" src="/Name.png" alt="Name icon" />
-						</span>
-						Name
-					</span>
-				</th>
-				<th>
-					<span class="table-label">
-						<span class="table-icon-bg">
-							<img class="table-icon" src="/GPU.png" alt="GPU icon" />
-						</span>
-						Efficiency
-					</span>
-				</th>
-				<th>
-					<span class="table-label">
-						<span class="table-icon-bg">
-							<img class="table-icon" src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%3E%3Cpolygon%20points='5,16%2012,8%2019,16'%20fill='%2310b981'/%3E%3C/svg%3E" alt="Up arrow icon" />
-						</span>
-						GPU Hours Gained
-					</span>
-				</th>
-				<th>SCORE</th>
-			</tr>
-		</thead>
-
-		<tbody>
-			<tr class="leader-first">
-				<td>1</td>
-				<td>Florine</td>
-				<td>95</td>
-				<td>
-					<div class="gpu-cell">
-						<span>95hrs</span>
-						<div class="gpu-bar">
-							<div class="gpu-fill" data-width="95%" style="width:0"></div>
-						</div>
-					</div>
-				</td>
-				<td>500</td>
-			</tr>
-			<tr class="leader-second">
-				<td>2</td>
-				<td>Best Volleybal Player</td>
-				<td>88</td>
-				<td>
-					<div class="gpu-cell">
-						<span>90hrs</span>
-						<div class="gpu-bar">
-							<div class="gpu-fill" data-width="90%" style="width:0"></div>
-						</div>
-					</div>
-				</td>
-				<td>500</td>
-			</tr>
-			<tr class="leader-third">
-				<td>3</td>
-				<td>tallest Flo</td>
-				<td>92</td>
-				<td>
-					<div class="gpu-cell">
-						<span>85hrs</span>
-						<div class="gpu-bar">
-							<div class="gpu-fill" data-width="85%" style="width:0"></div>
-						</div>
-					</div>
-				</td>
-				<td>500</td>
-			</tr>
-			<tr>
-				<td>4</td>
-				<td>Quantum Quinton</td>
-				<td>90</td>
-				<td>
-					<div class="gpu-cell">
-						<span>80hrs</span>
-						<div class="gpu-bar">
-							<div class="gpu-fill" data-width="80%" style="width:0"></div>
-						</div>
-					</div>
-				</td>
-				<td>500</td>
-			</tr>
-			<tr>
-				<td>5</td>
-				<td>Data Dana</td>
-				<td>88</td>
-				<td>
-					<div class="gpu-cell">
-						<span>75hrs</span>
-						<div class="gpu-bar">
-							<div class="gpu-fill" data-width="75%" style="width:0"></div>
-						</div>
-					</div>
-				</td>
-				<td>500</td>
-			</tr>
-			<tr>
-				<td>6</td>
-				<td>Algorithm Aiden</td>
-				<td>86</td>
-				<td>
-					<div class="gpu-cell">
-						<span>70hrs</span>
-						<div class="gpu-bar">
-							<div class="gpu-fill" data-width="70%" style="width:0"></div>
-						</div>
-					</div>
-				</td>
-				<td>500</td>
-			</tr>
-			<tr>
-				<td>7</td>
-				<td>Pipeline Priya</td>
-				<td>84</td>
-				<td>
-					<div class="gpu-cell">
-						<span>68hrs</span>
-						<div class="gpu-bar">
-							<div class="gpu-fill" data-width="68%" style="width:0"></div>
-						</div>
-					</div>
-				</td>
-				<td>500</td>
-			</tr>
-			<tr>
-				<td>8</td>
-				<td>Kernel Ken</td>
-				<td>82</td>
-				<td>
-					<div class="gpu-cell">
-						<span>65hrs</span>
-						<div class="gpu-bar">
-							<div class="gpu-fill" data-width="65%" style="width:0"></div>
-						</div>
-					</div>
-				</td>
-				<td>500</td>
-			</tr>
-			<tr>
-				<td>9</td>
-				<td>Tensor Tessa</td>
-				<td>80</td>
-				<td>
-					<div class="gpu-cell">
-						<span>60hrs</span>
-						<div class="gpu-bar">
-							<div class="gpu-fill" data-width="60%" style="width:0"></div>
-						</div>
-					</div>
-				</td>
-				<td>500</td>
-			</tr>
-			<tr>
-				<td>10</td>
-				<td>Vector Vance</td>
-				<td>78</td>
-				<td>
-					<div class="gpu-cell">
-						<span>55hrs</span>
-						<div class="gpu-bar">
-							<div class="gpu-fill" data-width="55%" style="width:0"></div>
-						</div>
-					</div>
-				</td>
-				<td>500</td>
-			</tr>
-		</tbody>
-	</table>
+        <thead>
+          <tr>
+            <th></th>
+            <th><span class="table-label"><span class="table-icon-bg"><img class="table-icon" src="/Name.png" alt="Name icon" /></span>Name</span></th>
+            <th><span class="table-label"><span class="table-icon-bg"><img class="table-icon" src="/GPU.png" alt="GPU icon" /></span>Efficiency</span></th>
+            <th><span class="table-label"><span class="table-icon-bg"><img class="table-icon" src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%3E%3Cpolygon%20points='5,16%2012,8%2019,16'%20fill='%2310b981'/%3E%3C/svg%3E" alt="Up arrow" /></span>GPU Hours Gained</span></th>
+            <th>SCORE</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="leader-first"><td>1</td><td>Florine</td><td>95</td><td><div class="gpu-cell"><span>95hrs</span><div class="gpu-bar"><div class="gpu-fill" data-width="95%" style="width:0"></div></div></div></td><td>500</td></tr>
+          <tr class="leader-second"><td>2</td><td>Best Volleybal Player</td><td>88</td><td><div class="gpu-cell"><span>90hrs</span><div class="gpu-bar"><div class="gpu-fill" data-width="90%" style="width:0"></div></div></div></td><td>500</td></tr>
+          <tr class="leader-third"><td>3</td><td>tallest Flo</td><td>92</td><td><div class="gpu-cell"><span>85hrs</span><div class="gpu-bar"><div class="gpu-fill" data-width="85%" style="width:0"></div></div></div></td><td>500</td></tr>
+          <tr><td>4</td><td>Quantum Quinton</td><td>90</td><td><div class="gpu-cell"><span>80hrs</span><div class="gpu-bar"><div class="gpu-fill" data-width="80%" style="width:0"></div></div></div></td><td>500</td></tr>
+          <tr><td>5</td><td>Data Dana</td><td>88</td><td><div class="gpu-cell"><span>75hrs</span><div class="gpu-bar"><div class="gpu-fill" data-width="75%" style="width:0"></div></div></div></td><td>500</td></tr>
+          <tr><td>6</td><td>Algorithm Aiden</td><td>86</td><td><div class="gpu-cell"><span>70hrs</span><div class="gpu-bar"><div class="gpu-fill" data-width="70%" style="width:0"></div></div></div></td><td>500</td></tr>
+          <tr><td>7</td><td>Pipeline Priya</td><td>84</td><td><div class="gpu-cell"><span>68hrs</span><div class="gpu-bar"><div class="gpu-fill" data-width="68%" style="width:0"></div></div></div></td><td>500</td></tr>
+          <tr><td>8</td><td>Kernel Ken</td><td>82</td><td><div class="gpu-cell"><span>65hrs</span><div class="gpu-bar"><div class="gpu-fill" data-width="65%" style="width:0"></div></div></div></td><td>500</td></tr>
+          <tr><td>9</td><td>Tensor Tessa</td><td>80</td><td><div class="gpu-cell"><span>60hrs</span><div class="gpu-bar"><div class="gpu-fill" data-width="60%" style="width:0"></div></div></div></td><td>500</td></tr>
+          <tr><td>10</td><td>Vector Vance</td><td>78</td><td><div class="gpu-cell"><span>55hrs</span><div class="gpu-bar"><div class="gpu-fill" data-width="55%" style="width:0"></div></div></div></td><td>500</td></tr>
+        </tbody>
+      </table>
     </div>
   </section>
 
+  <!-- LOSER BOARD -->
   <section id="loser-section" class="loser-section">
     <div class="dashboard-card">
-	  <div class="board-header">
-		  <div>
-			<h1>Loser Board</h1>
-			<p class="board-subtitle">BOTTOM 10 COMMANDERS</p>
-		  </div>
-
-		<span class="live-badge">LIVE</span>
-	  </div>
-
+      <div class="board-header">
+        <div>
+          <h1>Loser Board</h1>
+          <p class="board-subtitle">BOTTOM 10 COMMANDERS</p>
+        </div>
+        <span class="live-badge">LIVE</span>
+      </div>
       <table>
-		<thead>
-			<tr>
-				<th></th>
-				<th>
-					<span class="table-label">
-						<span class="table-icon-bg">
-							<img class="table-icon" src="/Name.png" alt="Name icon" />
-						</span>
-						Name
-					</span>
-				</th>
-				<th>
-					<span class="table-label">
-						<span class="table-icon-bg">
-							<img class="table-icon" src="/GPU.png" alt="GPU icon" />
-						</span>
-						Efficiency
-					</span>
-				</th>
-				<th>
-					<span class="table-label">
-						<span class="table-icon-bg">
-							<img class="table-icon" src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%3E%3Cpolygon%20points='12,18%205,8%2019,8'%20fill='%23ef4444'/%3E%3C/svg%3E" alt="Down arrow icon" />
-						</span>
-						GPU Hours Gained
-					</span>
-				</th>
-				<th>SCORE</th>
-			</tr>
-		</thead>
-
-		<tbody>
-			<tr class="loser-worst">
-				<td>1</td>
-				<td>Aaron</td>
-				<td>95</td>
-				<td>
-					<div class="gpu-cell">
-						<span>50hrs</span>
-						<div class="gpu-bar">
-							<div class="gpu-fill gold" data-width="50%" style="width:0"></div>
-						</div>
-					</div>
-				</td>
-				<td>5000</td>
-			</tr>
-			<tr class="loser-second-worst">
-				<td>2</td>
-				<td>Ian</td>
-				<td>88</td>
-				<td>
-					<div class="gpu-cell">
-						<span>45hrs</span>
-						<div class="gpu-bar">
-							<div class="gpu-fill gold" data-width="45%" style="width:0"></div>
-						</div>
-					</div>
-				</td>
-				<td>4200</td>
-			</tr>
-			<tr class="loser-third-worst">
-				<td>3</td>
-				<td>Theo</td>
-				<td>92</td>
-				<td>
-					<div class="gpu-cell">
-						<span>37hrs</span>
-						<div class="gpu-bar">
-							<div class="gpu-fill gold" data-width="37%" style="width:0"></div>
-						</div>
-					</div>
-				</td>
-				<td>3900</td>
-			</tr>
-			<tr>
-				<td>4</td>
-				<td>Laggy Lana</td>
-				<td>70</td>
-				<td>
-					<div class="gpu-cell">
-						<span>30hrs</span>
-						<div class="gpu-bar">
-							<div class="gpu-fill gold" data-width="30%" style="width:0"></div>
-						</div>
-					</div>
-				</td>
-				<td>500</td>
-			</tr>
-			<tr>
-				<td>5</td>
-				<td>Crash Carl</td>
-				<td>68</td>
-				<td>
-					<div class="gpu-cell">
-						<span>35hrs</span>
-						<div class="gpu-bar">
-							<div class="gpu-fill gold" data-width="35%" style="width:0"></div>
-						</div>
-					</div>
-				</td>
-				<td>500</td>
-			</tr>
-			<tr>
-				<td>6</td>
-				<td>Stuck Steve</td>
-				<td>66</td>
-				<td>
-					<div class="gpu-cell">
-						<span>30hrs</span>
-						<div class="gpu-bar">
-							<div class="gpu-fill gold" data-width="30%" style="width:0"></div>
-						</div>
-					</div>
-				</td>
-				<td>500</td>
-			</tr>
-			<tr>
-				<td>7</td>
-				<td>Frozen Fran</td>
-				<td>64</td>
-				<td>
-					<div class="gpu-cell">
-						<span>20hrs</span>
-						<div class="gpu-bar">
-							<div class="gpu-fill gold" data-width="20%" style="width:0"></div>
-						</div>
-					</div>
-				</td>
-				<td>500</td>
-			</tr>
-			<tr>
-				<td>8</td>
-				<td>Snail Nate</td>
-				<td>62</td>
-				<td>
-					<div class="gpu-cell">
-						<span>10hrs</span>
-						<div class="gpu-bar">
-							<div class="gpu-fill gold" data-width="10%" style="width:0"></div>
-						</div>
-					</div>
-				</td>
-				<td>58</td>
-			</tr>
-			<tr>
-				<td>9</td>
-				<td>Buffer Beth</td>
-				<td>60</td>
-				<td>
-					<div class="gpu-cell">
-						<span>5hrs</span>
-						<div class="gpu-bar">
-							<div class="gpu-fill gold" data-width="5%" style="width:0"></div>
-						</div>
-					</div>
-				</td>
-				<td>500</td>
-			</tr>
-			<tr>
-				<td>10</td>
-				<td>Timeout Tim</td>
-				<td>58</td>
-				<td>
-					<div class="gpu-cell">
-						<span>3hrs</span>
-						<div class="gpu-bar">
-							<div class="gpu-fill gold" data-width="3%" style="width:0"></div>
-						</div>
-					</div>
-				</td>
-				<td>500</td>
-			</tr>
-		</tbody>
-	</table>
+        <thead>
+          <tr>
+            <th></th>
+            <th><span class="table-label"><span class="table-icon-bg"><img class="table-icon" src="/Name.png" alt="Name icon" /></span>Name</span></th>
+            <th><span class="table-label"><span class="table-icon-bg"><img class="table-icon" src="/GPU.png" alt="GPU icon" /></span>Efficiency</span></th>
+            <th><span class="table-label"><span class="table-icon-bg"><img class="table-icon" src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%3E%3Cpolygon%20points='12,18%205,8%2019,8'%20fill='%23ef4444'/%3E%3C/svg%3E" alt="Down arrow" /></span>GPU Hours Gained</span></th>
+            <th>SCORE</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="loser-worst"><td>1</td><td>Aaron</td><td>95</td><td><div class="gpu-cell"><span>50hrs</span><div class="gpu-bar"><div class="gpu-fill gold" data-width="50%" style="width:0"></div></div></div></td><td>5000</td></tr>
+          <tr class="loser-second-worst"><td>2</td><td>Ian</td><td>88</td><td><div class="gpu-cell"><span>45hrs</span><div class="gpu-bar"><div class="gpu-fill gold" data-width="45%" style="width:0"></div></div></div></td><td>4200</td></tr>
+          <tr class="loser-third-worst"><td>3</td><td>Theo</td><td>92</td><td><div class="gpu-cell"><span>37hrs</span><div class="gpu-bar"><div class="gpu-fill gold" data-width="37%" style="width:0"></div></div></div></td><td>3900</td></tr>
+          <tr><td>4</td><td>Laggy Lana</td><td>70</td><td><div class="gpu-cell"><span>30hrs</span><div class="gpu-bar"><div class="gpu-fill gold" data-width="30%" style="width:0"></div></div></div></td><td>500</td></tr>
+          <tr><td>5</td><td>Crash Carl</td><td>68</td><td><div class="gpu-cell"><span>35hrs</span><div class="gpu-bar"><div class="gpu-fill gold" data-width="35%" style="width:0"></div></div></div></td><td>500</td></tr>
+          <tr><td>6</td><td>Stuck Steve</td><td>66</td><td><div class="gpu-cell"><span>30hrs</span><div class="gpu-bar"><div class="gpu-fill gold" data-width="30%" style="width:0"></div></div></div></td><td>500</td></tr>
+          <tr><td>7</td><td>Frozen Fran</td><td>64</td><td><div class="gpu-cell"><span>20hrs</span><div class="gpu-bar"><div class="gpu-fill gold" data-width="20%" style="width:0"></div></div></div></td><td>500</td></tr>
+          <tr><td>8</td><td>Snail Nate</td><td>62</td><td><div class="gpu-cell"><span>10hrs</span><div class="gpu-bar"><div class="gpu-fill gold" data-width="10%" style="width:0"></div></div></div></td><td>58</td></tr>
+          <tr><td>9</td><td>Buffer Beth</td><td>60</td><td><div class="gpu-cell"><span>5hrs</span><div class="gpu-bar"><div class="gpu-fill gold" data-width="5%" style="width:0"></div></div></div></td><td>500</td></tr>
+          <tr><td>10</td><td>Timeout Tim</td><td>58</td><td><div class="gpu-cell"><span>3hrs</span><div class="gpu-bar"><div class="gpu-fill gold" data-width="3%" style="width:0"></div></div></div></td><td>500</td></tr>
+        </tbody>
+      </table>
     </div>
   </section>
 
-  <script>
-  document.addEventListener("DOMContentLoaded", () => {
+	<script>
+	document.addEventListener("DOMContentLoaded", () => {
+
+	const utilBar = document.querySelector(".util-fill:not(.gpu-fill)");
+	const snail = document.querySelector(".snail-img");
+	const speed = document.querySelector(".snail-speed");
+	const status = document.querySelector(".util-status");
+
+	if (utilBar && snail && status) {
+		const percent = parseInt(utilBar.dataset.width);
+
+		setTimeout(() => {
+		utilBar.style.width = utilBar.dataset.width;
+		}, 300);
+
+		if (percent < 40) {
+		snail.className = "snail-img crawling";
+		status.textContent = "CRAWLING";
+		speed.classList.remove("active");
+
+		} else if (percent < 75) {
+		snail.className = "snail-img cruising";
+		status.textContent = "CRUISING";
+		speed.classList.remove("active");
+
+		} else {
+		snail.className = "snail-img blazing";
+		status.textContent = "BLAZING";
+		speed.classList.add("active");
+		}
+	}
+
+	// leaderboard animation
 	const observer = new IntersectionObserver(entries => {
 		entries.forEach(entry => {
-			if (!entry.isIntersecting) return;
-
-			entry.target.querySelectorAll(".gpu-fill").forEach(bar => {
-				setTimeout(() => {
-					bar.style.width = bar.dataset.width;
-				}, 150);
-			});
+		if (!entry.isIntersecting) return;
+		entry.target.querySelectorAll(".gpu-fill").forEach(bar => {
+			setTimeout(() => {
+			bar.style.width = bar.dataset.width;
+			}, 150);
 		});
-  });
+		});
+	});
 
 	document.querySelectorAll(".dashboard-card").forEach(card => {
 		observer.observe(card);
 	});
-  });
-  </script>
+
+	});
+	</script>
+
 </main>
- </Layout>
+</Layout>
 
 <style>
-  main {
-    margin: 0;
-  }
-
-  section {
-    min-height: 100vh;
-    padding: 1rem 2rem;
-  }
-
   :root {
-  --bg: #111;
-
-  --gpu-primary: #53d5fd;
-  --gpu-glow: #b6eeff;
-
-  --cpu-primary: #d5ad4d;
-  --cpu-glow: #ffebaf;
+    --gpu-primary: #53d5fd;
+    --gpu-glow: #b6eeff;
+    --cpu-primary: #d5ad4d;
+    --cpu-glow: #ffebaf;
   }
 
-  .game-section {
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
-    background: #111;
-	color: #fff;
-	padding-top:0;
+  main { margin: 0; }
+  /*Cursor*/
+  .cursor {
+  display: inline-block;
+  margin-left: 4px;
+  animation: blink 1s steps(2, start) infinite;
+}
+
+@keyframes blink {
+  to { visibility: hidden; }
+}
+  /*Snail*/
+  .snail-img {
+    height: auto;
+    width: 200px;
+    margin: 1.2rem auto;
+    display: block;
+    animation: float 3s ease-in-out infinite;
+    filter: drop-shadow(0 0 10px rgba(213, 173, 77, 0.14));
   }
 
-  .leader-section {
-    background: #111;
-	color: #b6eeff;
-  }
+  /* BASE */
+.snail-img {
+  height: auto;
+  width: 200px;
+  margin: 1.2rem auto;
+  display: block;
+  filter: drop-shadow(0 0 10px rgba(213, 173, 77, 0.14));
+}
 
-  .loser-section {
-    background: #111;
-	color: #ffebaf;
-  }
+/* STATES */
+.snail-img.crawling {
+  animation: crawl 4s ease-in-out infinite;
+}
 
+.snail-img.cruising {
+  animation: float 2.5s ease-in-out infinite;
+}
+
+.snail-img.blazing {
+  animation: bounce 0.6s ease-in-out infinite;
+}
+
+/* KEYFRAMES */
+@keyframes crawl {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+/* SPEED */
+.snail-wrap {
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+
+.snail-speed {
+  position: absolute;
+  left: -20px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 100px;
+  opacity: 0;
+}
+
+.snail-speed span {
+  display: block;
+  height: 2px;
+  margin: 6px 0;
+  background: linear-gradient(90deg, transparent, #53d5fd, transparent);
+  animation: speed 0.4s linear infinite;
+}
+
+.snail-speed span:nth-child(2) {
+  animation-delay: 0.1s;
+}
+
+.snail-speed span:nth-child(3) {
+  animation-delay: 0.2s;
+}
+
+@keyframes speed {
+  from { transform: translateX(-20px); opacity: 0; }
+  to   { transform: translateX(20px); opacity: 1; }
+}
+
+.snail-speed.active {
+  opacity: 1;
+}
+
+
+ 
+
+  /* ── HEADER ── */
   header {
-	display: grid;
-	grid-template-columns: 1fr;
-	row-gap: 0.8rem;
-	align-items: center;
-	padding: 0.5rem 1rem;
-	color: #fff;
-	background: #061318;
-	border-bottom: 1px solid #53d5fd;
-	box-shadow: 0 0 20px rgba(83, 213, 253, 0.5);
-	min-height: 64px;
-	backdrop-filter: blur(10px);
-	box-sizing: border-box;
+    height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 1.5rem;
+    background: #061318;
+    box-shadow: 0 0 20px rgba(83,213,253,0.5);
+    position: sticky;
+    top: 0;
+    z-index: 100;
   }
 
-  .board-subtitle {
-	margin: 0 0 1rem;
-	font-family: 'Orbitron', sans-serif;
-	font-size: 0.75rem;
-	letter-spacing: 0.25em;
-	text-transform: uppercase;
-	color: #7a8ba3;
+  .terminal {
+	opacity: 0.8
   }
 
-  .board-header {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
+  .hero-title {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 800;
+    font-size: clamp(2.65rem, 5vw, 4.2rem);
+    line-height: 0.92;
+    letter-spacing: 0.02em;
+    color: #d8d8d8;
+    margin: 0.15rem 0 0.25rem 0;
+
   }
 
-  .live-badge {
-	padding: 0.35rem 0.8rem;
-	border: 1px solid #53d5fd;
-	color: #53d5fd;
-	border-radius: 999px;
-	font-size: 0.75rem;
-	letter-spacing: 0.15em;
-	box-shadow: 0 0 12px rgba(83,213,253,.25);
+  .hero-title span:first-child {
+    color: #d8d8d8;
   }
 
-  .live-badge.gold {
-	border-color: #d5ad4d;
-	color: #d5ad4d;
-	box-shadow: 0 0 12px rgba(213,173,77,.25);
-  }
-
-  .live-badge::before {
-	content: "";
-	width: 8px;
-	height: 8px;
-	background: currentColor;
-	border-radius: 50%;
-	display: inline-block;
-	margin-right: 6px;
-	animation: pulse 1.5s infinite;
-  }
-
-  .gpu-fill {
-	height: 100%;
-	width: 0;
-	background: linear-gradient(
-		90deg,
-		#53d5fd,
-		#b6eeff
-	);
-	border-radius: 999px;
-	box-shadow: 0 0 12px #53d5fd;
-	transition: width 1.8s ease-out;
+  .hero-title .platform {
+    font-size: 0.82em;
+	font-weight: 700;
+    color: #676969;
+	display: block;
+	margin-top: 2px;
   }
 
 
-  .gpu-fill.gold {
-	background: linear-gradient(
-		90deg,
-		#d5ad4d,
-		#ffebaf
-	);
-	box-shadow: 0 0 12px #d5ad4d;
+  .hero-description{
+	color: #5c7c7c;
+	margin-top: 0.2rem;
   }
-
-  .gpu-fill {
-	position: relative;
-	overflow: hidden;
-  }
-
-  .gpu-fill::after {
-	content: "";
-	position: absolute;
-	top: 0;
-	left: -100%;
-	width: 100%;
-	height: 100%;
-	background: rgba(255,255,255,.35);
-	animation: sweep 2.5s infinite;
-  }
-
-  @keyframes sweep {
-	0% { left: -100%; }
-	100% { left: 100%; }
-  }
-
-  @keyframes pulse {
-	0% { opacity: .4; }
-	50% { opacity: 1; }
-	100% { opacity: .4; }
-  }
-
-  main {
-    margin: 0;
-  }
-
   .header-brand {
-	display: flex;
-	align-items: center;
-	gap: 1rem;
-	justify-self: start;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
   }
-
+  .logo {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+    flex-shrink: 0;
+  }
+  .brand-text { display: flex; flex-direction: column; gap: 0.2rem; }
   .header-brand h1 {
-	margin: 0;
-	font-family: 'Orbitron', sans-serif;
-	font-size: 2rem;
-	font-weight: 800;
-	letter-spacing: 0.12em;
-	color: #53d5fd;
-	text-shadow:
-		0 0 8px #53d5fd,
-		0 0 20px #53d5fd,
-		0 0 40px rgba(83,213,253,.5);
-	text-transform: uppercase;
+    font-family: 'Orbitron', sans-serif;
+    letter-spacing: 0.08em;
+    font-weight: 800;
+    margin: 0;
   }
-
-  .board-header h1,
-  .live-badge,
-  .header-nav a,
-  .hero-eyebrow {
-	font-family: 'Orbitron', sans-serif;
+  .cluster-text { color: #d8d8d8; }
+  .cmd-text { color: #53d5fd; }
+  .brand-subtitle { margin: 0; color: #d5ad4d; font-size: 0.82rem; }
+  .header-nav {
+    display: flex;
+    align-items: center;
+    gap: 2.5rem;
+    margin-left: auto;
   }
-
-  .board-header h1 {
-	text-transform: uppercase;
-	letter-spacing: 0.08em;
-  }
-
   .header-nav a {
-	display: inline-block;
-	color: white;
-	text-decoration: none;
-	transition: all 0.2s ease;
-	padding: 0.4rem 0.7rem;
-	border-radius: 6px;
-	font-size: 0.8rem;
-	letter-spacing: 0.15em;
-	text-transform: uppercase;
-  }
-
-  .header-nav a:hover {
-	background: rgba(83, 213, 253, 0.15);
-	color: #b6eeff;
-	box-shadow: 0 0 12px rgba(83, 213, 253, 0.35);
-	transform: translateY(-2px);
-	padding: 0.75rem 1.25rem;
-	border-radius: 8px;
-  }
-
-  .header-nav a.leader-link:hover {
-	background: rgba(83, 213, 253, 0.15);
-	transform: translateY(-2px);
-	border-radius: 8px;
-	color: white;
-  }
-
-  .header-nav a.loser-link:hover {
-	background: rgba(213, 173, 77, 0.15);
-	transform: translateY(-2px);
-	border-radius: 8px;
-	color: white;
-  }
-
-  .brand-subtitle {
-    margin: 0;
-    color: #d5ad4d;
-    font-size: 0.82rem;
-    line-height: 1.3;
-  }
-
-  .hero-eyebrow {
-    margin: 0 0 0.5rem;
-    text-transform: uppercase;
-    letter-spacing: 0.18em;
+    display: inline-block;
+    color: white;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    padding: 0.4rem 0.7rem;
+    border-radius: 6px;
     font-size: 0.8rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    font-family: 'Orbitron', sans-serif;
+  }
+  .header-nav a:hover {
+    background: rgba(83,213,253,0.15);
+    color: #b6eeff;
+    box-shadow: 0 0 12px rgba(83,213,253,0.35);
+    transform: translateY(-2px);
+  }
+  .header-nav a.loser-link:hover { background: rgba(213,173,77,0.15); color: white; }
+
+  /* ── HERO ── */
+.hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+
+  min-height: calc(100vh - 70px);
+  padding: 3rem 4rem 0;
+  gap: 2rem 3rem;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(83, 213, 253, 0.18) 0%,
+      rgba(83, 213, 253, 0.08) 15%,
+      rgba(83, 213, 253, 0.02) 25%,
+      transparent 45%
+    ),
+    #0a0e14;
+
+  overflow: hidden;
+}
+
+	position: relative;
+
+
+/**/
+    overflow: hidden;
+
+	background:  
+		radial-gradient(circle at 50% 120%, rgba(83,213,253,0.06), transparent 60%),   
+		#0a0e14;
+  }
+
+  .hero::before {
+     content: "";  
+     position: absolute;
+    0.08) 18%,  inset: 0;      
+       rgba(10, 14, 20, 0) 40%    
+     ),
+	  radial-gradient(
+		circle at 50% -10%,
+		rgba(83, 213, 253, 0.12) 0%,  /* ✅ subtle glow */
+		rgba(83, 213, 253, 0.04) 25%,
+		rgba(10, 14, 20, 0) 45%
+	  );
+
+    pointer-events: none;
+  }
+
+
+
+  .hero > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* left */
+  .hero-left {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.7rem;   /* ✅ tight F1 spacing */
+}
+
+  .hero-prompt {
+    font-size: 0.85rem;
+    color: #10b981;
+    letter-spacing: 0.1em;
+    font-family: 'Courier New', monospace;
+    position: relative;
+    z-index: 2;
+	margin-bottom: 0.1rem;
+  }
+  .hero-tagline {
+    font-size: 1.15rem;
+    line-height: 1.6;
+    color: #94a3b8;
+    margin-top: 0.35rem;
+  }
+  .hero-badges { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+  .sys-badge {
+    padding: 0.3rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    font-family: 'Orbitron', sans-serif;
+  }
+  .sys-badge.online { border: 1px solid #10b981; color: #10b981; background: rgba(16,185,129,0.08); }
+  .sys-badge.load   { border: 1px solid #53d5fd; color: #53d5fd; background: rgba(83,213,253,0.08); }
+  .cta-btn {
+    display: inline-block;
+    padding: 0.85rem 2rem;
+    background: #53d5fd;
+    color: #061318;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    border-radius: 8px;
+    text-decoration: none;
+    width: fit-content;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+  }
+  .cta-btn:hover { box-shadow: 0 0 28px rgba(83,213,253,0.45); transform: translateY(-2px); }
+
+  /* right: slurm-o — unchanged */
+  .hero-right { display: flex; justify-content: center; }
+  .util-panel {
+    padding: 2rem 3rem;
+    background: linear-gradient(180deg, rgba(8, 12, 19, 0.9), rgba(8, 12, 19, 0.48));
+    border: 1px solid rgba(83, 213, 253, 0.14);
+    box-shadow: 0 22px 60px rgba(0, 0, 0, 0.28);
+    border-radius: 28px;
+    backdrop-filter: blur(12px);
+    text-align: left;
+    width: 100%;
+    max-width: 380px;
+  }
+  .util-panel.blazing {
+    border-color: rgba(213, 173, 77, 0.42);
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.32), 0 0 18px rgba(213, 173, 77, 0.1);
+  }
+  .util-header {
+    color: #53d5fd;
+    font-size: 0.75rem;
+    letter-spacing: 0.18em;
+    display: flex;
+    justify-content: center;
+    gap: 0.4rem;
+    margin-bottom: 1rem;
+  }
+  .live-dot {
+    width: 6px;
+    height: 6px;
+    background: #53d5fd;
+    border-radius: 50%;
+    box-shadow: 0 0 8px #53d5fd;
+    animation: pulse 1.5s infinite;
+  }
+
+  .util-status {
     color: #d5ad4d;
+    letter-spacing: 0.2em;
+    margin-bottom: 1rem;
+    text-align: center;
+    font-size: 0.88rem;
+  }
+  .util-bar {
+    height: 8px;
+    background: rgba(255,255,255,.08);
+    border-radius: 999px;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+  }
+  .util-fill {
+    height: 100%;
+    width: 0;
+    border-radius: 999px;
+    background: linear-gradient(90deg,#53d5fd,#d5ad4d);
+    transition: width 1.8s ease;
+  }
+  .util-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.7rem;
+    color: #7a8ba3;
   }
 
-  .hero-copy {
-    margin: 0;
-    font-size: 1.05rem;
-    line-height: 1.7;
-    color: #e5e7eb;
+  @media (max-width: 900px) {
+    .hero {
+      grid-template-columns: 1fr;
+      padding: 2.5rem 1.5rem 1rem;
+    }
+
+    .hero::before {
+      background:
+        linear-gradient(180deg, rgba(126, 0, 10, 0.22) 0%, rgba(54, 0, 12, 0.1) 20%, rgba(10, 14, 20, 0) 38%),
+        radial-gradient(circle at 24% 8%, rgba(255, 30, 30, 0.12) 0%, rgba(255, 30, 30, 0.03) 18%, rgba(10, 14, 20, 0) 34%);
+    }
+
+    .hero-right {
+      justify-content: center;
+    }
+
+    .util-panel {
+      padding: 1.75rem 1.5rem;
+    }
   }
 
-  .game-placeholder-card {
-    padding: 1.25rem;
-    border-radius: 24px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+  /* ── SECTIONS ── */
+  section { padding: 1rem 2rem; }
+  .leader-section { background: #111; color: #b6eeff; }
+  .loser-section  { background: #111; color: #ffebaf; }
+
+  /* ── BOARDS ── */
+  .board-subtitle {
+    margin: 0 0 1rem;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: #7a8ba3;
   }
-
-	.status-banner {
-	display: flex;
-	align-items: center;
-	gap: 0.5rem;
-
-	padding: 0.5rem 0.85rem;
-
-	background: rgba(83, 213, 253, 0.12);
-	border: 1px solid rgba(83, 213, 253, 0.35);
-	border-radius: 12px;
-	box-shadow: 0 0 18px rgba(83, 213, 253, 0.12);
-	max-width: 420px;
+  .board-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
   }
-
-	.status-dot {
-	width: 8px;
-	height: 8px;
-
-	background: #53d5fd;
-	border-radius: 50%;
-	box-shadow: 0 0 8px rgba(83, 213, 253, 0.7);
+  .board-header h1 {
+    margin: 0 0 0.25rem;
+    font-family: 'Orbitron', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
   }
-
+  .live-badge {
+    padding: 0.35rem 0.8rem;
+    border: 1px solid #53d5fd;
+    color: #53d5fd;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    box-shadow: 0 0 12px rgba(83,213,253,.25);
+    font-family: 'Orbitron', sans-serif;
+  }
+  .live-badge::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    background: currentColor;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 6px;
+    animation: pulse 1.5s infinite;
+  }
   .dashboard-card {
-	backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
     margin: 2rem auto;
     padding: 1.5rem;
     background: #061318;
     border-radius: 24px;
-    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
     max-width: 960px;
   }
-
-  .dashboard-card h1 {
-    margin: 0 0 1rem;
-  }
-
   .leader-section .dashboard-card {
-	background: #061318;
-	border: 1px solid #53d5fd;
-	box-shadow: 0 0 20px rgba(83,213,253,.15);
+    border: 1px solid #53d5fd;
+    box-shadow: 0 0 20px rgba(83,213,253,.15);
   }
-
   .loser-section .dashboard-card {
     background: #111;
-	border: 1px solid #d5ad4d;
+    border: 1px solid #d5ad4d;
   }
 
-  .leader-section table th,
-  .leader-section table thead th {
-    background: rgba(83, 213, 253, 0.08) !important;
-	border-bottom: 1px solid rgba(83, 213, 253, 0.12);
-    color: #53d5fd !important;
-  }
-
-  .loser-section table th,
-  .loser-section table thead th {
-    background: #432d00 !important;
-    color: #d5ad4d !important;
-	border-bottom: 1px solid rgba(213, 173, 77, 0.12);
-  }
-
-  /*table styles*/
+  /* ── TABLE ── */
   table {
-	width: 100%;
-	max-width: 900px;
-	margin: 2rem auto;
-	border-collapse: collapse;
-	background: #061318;
-	color: #b6eeff;
-	border-radius: 16px;
-	overflow: hidden;
-	margin: 2rem auto;
-  }
-
-	th,
-	td {
-	padding: 1rem 1.25rem;
-	text-align:center;
-	border-bottom: 1px solid rgba(83, 213, 253, 0.12);
-  }
-
-	th {
-	background: #222;
-	color: white;
-	font-weight: 700;
-  }
-
-  .table-label {
-	display: inline-flex;
-	align-items: center;
-	gap: 0.5rem;
-	white-space: nowrap;
-  }
-
-  .table-icon-bg {
-	width: 36px;
-	height: 36px;
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	background: rgba(83, 213, 253, 0.12);
-	border: 1px solid #53d5fd;
-	border-radius: 50%;
-	overflow: hidden;
-	box-shadow: 0 0 0 1px rgba(83,213,253,0.25);
-  }
-
-  .table-icon {
-	width: 100%;
-	height: 100%;
-	display: block;
-	object-fit: cover;
-  }
-
-  .leader-first,
-  .leader-second,
-  .leader-third {
-    background: transparent;
-    color: inherit;
-    box-shadow: none;
-  }
-
-  .leader-first td:first-child::before {
-    content: '🏆';
-    margin-right: 0.35rem;
-  }
-  .leader-second td:first-child::before {
-    content: '🥈';
-    margin-right: 0.35rem;
-  }
-  .leader-third td:first-child::before {
-    content: '🥉';
-    margin-right: 0.35rem;
-  }
-  .leader-first td:first-child,
-  .leader-second td:first-child,
-  .leader-third td:first-child {
-    font-weight: 700;
-    position: relative;
-  }
-
-  .leader-first td:first-child {
-    overflow: visible;
-  }
-
-  .leader-first td:first-child::after {
-    content: '';
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    width: 0;
-    height: 0;
-    opacity: 0;
-    box-shadow:
-      -10px -10px 0 0 #facc15,
-      10px -12px 0 0 #f97316,
-      -8px 8px 0 0 #fde68a,
-      12px 6px 0 0 #ef4444,
-      0px 12px 0 0 #a855f7;
-    transform: translate(-50%, -50%) scale(0.5);
-    pointer-events: none;
-  }
-
-  .leader-first:hover td:first-child::after {
-    opacity: 1;
-    animation: confetti-burst 0.65s ease-out forwards;
-  }
-
-  .loser-worst td:first-child::before {
-    content: '⚠️';
-    margin-right: 0.35rem;
-  }
-  .loser-second-worst td:first-child::before {
-    content: '🐌';
-    margin-right: 0.35rem;
-  }
-  .loser-third-worst td:first-child::before {
-    content: '🐌';
-    margin-right: 0.35rem;
-  }
-  .loser-worst td:first-child,
-  .loser-second-worst td:first-child,
-  .loser-third-worst td:first-child {
-    font-weight: 700;
-  }
-
-  .gpu-bar {
-	width: 120px;
-	height: 8px;
-	background: rgba(255,255,255,.08);
-	border-radius: 999px;
-	overflow: hidden;
-}
-
-  @keyframes confetti-burst {
-    0% {
-      opacity: 0;
-      transform: translate(0, 0) scale(0.75);
-    }
-    40% {
-      opacity: 1;
-      transform: translate(8px, -8px) scale(1);
-    }
-    80% {
-      transform: translate(14px, -18px) scale(1);
-    }
-    100% {
-      opacity: 0;
-      transform: translate(18px, -28px) scale(0.8);
-    }
-  }
-
-  .loser-worst,
-  .loser-second-worst,
-  .loser-third-worst {
-    background: transparent;
-    box-shadow: none;
-  }
-
-  tbody tr {
-    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
-  }
-
-  .leader-section tbody tr:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 12px 30px rgba(34, 34, 34, 0.08);
-  }
-
-  .loser-section tbody tr:hover {
-    transform: translateY(0);
-    background-color: rgba(0, 0, 0, 0.04);
-  }
-
-  .loser-section tbody tr:hover {
-    animation: loser-shake 0.35s ease-in-out;
-  }
-
-  @keyframes loser-shake {
-    0% { transform: translateX(0); }
-    25% { transform: translateX(-2px); }
-    50% { transform: translateX(2px); }
-    75% { transform: translateX(-1px); }
-    100% { transform: translateX(0); }
-  }
-
-	tbody tr:last-child td {
-	border-bottom: none;
-  }
-	.logo {
-		width: 60px; /* smaller logo to reduce header height */
-		height: 60px;
-		object-fit: contain;
-		flex-shrink: 0;
-	}
-
-  .leader-section h1,
-  .loser-section h1 {
-    margin-top: 0;
-    margin-bottom: 0.5rem;
-  }
-
-	/* header nav (moved into header) */
-	.header-nav {
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		gap: 3.5rem; /* increased spacing between links */
-		justify-self: center;
-	}
-
-  .game-wrapper {
-	display: flex;
-	flex-direction: column;
-	gap: 1.25rem;
-	max-width: 960px;
-	margin: 0 auto;
-  }
-
-  .brand-text {
-    display: flex;
-    flex-direction: column;
-    gap: 0.2rem;
-  }
-
-  .hero-card {
+    width: 100%;
+    max-width: 900px;
+    margin: 2rem auto;
+    border-collapse: collapse;
     background: #061318;
-    border: 1px solid #53d5fd;
-    border-radius: 24px;
-    padding: 1.5rem;
-    box-shadow: 0 0px 25px rgba(83, 213, 253, 0.15);
+    color: #b6eeff;
+    border-radius: 16px;
+    overflow: hidden;
   }
-
-  .leader-section table th,
-  .leader-section table thead th {
-    background: rgba(83, 213, 253, 0.08) !important;
-	border-bottom: 1px solid rgba(83, 213, 253, 0.12);
-    color: #53d5fd !important;
+  th, td {
+    padding: 1rem 1.25rem;
+    text-align: center;
+    border-bottom: 1px solid rgba(83,213,253,0.12);
   }
+  th { background: #222; color: white; font-weight: 700; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr { transition: transform 0.2s ease, background-color 0.2s ease; }
 
-  .loser-section table th,
-  .loser-section table thead th {
-    background: #432d00 !important;
-    color: #d5ad4d !important;
-	border-bottom: 1px solid rgba(213, 173, 77, 0.12);
-  }
+  .leader-section table th { background: rgba(83,213,253,0.08) !important; color: #53d5fd !important; border-bottom: 1px solid rgba(83,213,253,0.12); }
+  .loser-section  table th { background: #432d00 !important; color: #d5ad4d !important; border-bottom: 1px solid rgba(213,173,77,0.12); }
+  .leader-section tbody tr:hover { transform: translateY(-3px); }
+  .loser-section  tbody tr:hover { animation: loser-shake 0.35s ease-in-out; }
 
-  /*table styles*/
-  table {
-	width: 100%;
-	max-width: 900px;
-	margin: 2rem auto;
-	border-collapse: collapse;
-	background: #061318;
-	color: #b6eeff;
-	border-radius: 16px;
-	overflow: hidden;
-	margin: 2rem auto;
-  }
-
-	th,
-	td {
-	padding: 1rem 1.25rem;
-	text-align:center;
-	border-bottom: 1px solid rgba(83, 213, 253, 0.12);
-  }
-
-	th {
-	background: #222;
-	color: white;
-	font-weight: 700;
-  }
-
-  .table-label {
-	display: inline-flex;
-	align-items: center;
-	gap: 0.5rem;
-	white-space: nowrap;
-  }
-
+  .table-label { display: inline-flex; align-items: center; gap: 0.5rem; white-space: nowrap; }
   .table-icon-bg {
-	width: 36px;
-	height: 36px;
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	background: rgba(83, 213, 253, 0.12);
-	border: 1px solid #53d5fd;
-	border-radius: 50%;
-	overflow: hidden;
-	box-shadow: 0 0 0 1px rgba(83,213,253,0.25);
+    width: 36px; height: 36px;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: rgba(83,213,253,0.12);
+    border: 1px solid #53d5fd;
+    border-radius: 50%;
+    overflow: hidden;
+  }
+  .table-icon { width: 100%; height: 100%; display: block; object-fit: cover; }
+
+  .gpu-cell { display: flex; align-items: center; gap: 0.5rem; justify-content: center; }
+  .gpu-bar { width: 120px; height: 8px; background: rgba(255,255,255,.08); border-radius: 999px; overflow: hidden; }
+  .gpu-fill {
+    height: 100%;
+    width: 0;
+    background: linear-gradient(90deg,#53d5fd,#b6eeff);
+    border-radius: 999px;
+    box-shadow: 0 0 12px #53d5fd;
+    transition: width 1.8s ease-out;
+    position: relative;
+    overflow: hidden;
+  }
+  .gpu-fill.gold { background: linear-gradient(90deg,#d5ad4d,#ffebaf); box-shadow: 0 0 12px #d5ad4d; }
+  .gpu-fill::after {
+    content: "";
+    position: absolute;
+    top: 0; left: -100%;
+    width: 100%; height: 100%;
+    background: rgba(255,255,255,.35);
+    animation: sweep 2.5s infinite;
   }
 
-  .table-icon {
-	width: 100%;
-	height: 100%;
-	display: block;
-	object-fit: cover;
-  }
-
-  .leader-first,
-  .leader-second,
-  .leader-third {
-    background: transparent;
-    color: inherit;
-    box-shadow: none;
-  }
-
-  .leader-first td:first-child::before {
-    content: '🏆';
-    margin-right: 0.35rem;
-  }
-  .leader-second td:first-child::before {
-    content: '🥈';
-    margin-right: 0.35rem;
-  }
-  .leader-third td:first-child::before {
-    content: '🥉';
-    margin-right: 0.35rem;
-  }
+  /* rank badges */
+  .leader-first td:first-child::before  { content: '🏆'; margin-right: 0.35rem; }
+  .leader-second td:first-child::before { content: '🥈'; margin-right: 0.35rem; }
+  .leader-third td:first-child::before  { content: '🥉'; margin-right: 0.35rem; }
   .leader-first td:first-child,
   .leader-second td:first-child,
-  .leader-third td:first-child {
-    font-weight: 700;
-    position: relative;
-  }
-
-  .leader-first td:first-child {
-    overflow: visible;
-  }
-
-  .leader-first td:first-child::after {
+  .leader-third td:first-child { font-weight: 700; position: relative; }
+  .leader-first td:first-child { overflow: visible; }
+  .leader-first:hover td:first-child::after {
     content: '';
     position: absolute;
-    left: 50%;
-    top: 50%;
-    width: 0;
-    height: 0;
-    opacity: 0;
-    box-shadow:
-      -10px -10px 0 0 #facc15,
-      10px -12px 0 0 #f97316,
-      -8px 8px 0 0 #fde68a,
-      12px 6px 0 0 #ef4444,
-      0px 12px 0 0 #a855f7;
-    transform: translate(-50%, -50%) scale(0.5);
+    left: 50%; top: 50%;
+    width: 0; height: 0;
+    opacity: 1;
+    box-shadow: -10px -10px 0 0 #facc15, 10px -12px 0 0 #f97316, -8px 8px 0 0 #fde68a, 12px 6px 0 0 #ef4444, 0px 12px 0 0 #a855f7;
+    transform: translate(-50%,-50%) scale(0.5);
+    animation: confetti-burst 0.65s ease-out forwards;
     pointer-events: none;
   }
 
-  .leader-first:hover td:first-child::after {
-    opacity: 1;
-    animation: confetti-burst 0.65s ease-out forwards;
-  }
-
-  .loser-worst td:first-child::before {
-    content: '⚠️';
-    margin-right: 0.35rem;
-  }
-  .loser-second-worst td:first-child::before {
-    content: '🐌';
-    margin-right: 0.35rem;
-  }
-  .loser-third-worst td:first-child::before {
-    content: '🐌';
-    margin-right: 0.35rem;
-  }
+  .loser-worst td:first-child::before        { content: '⚠️'; margin-right: 0.35rem; }
+  .loser-second-worst td:first-child::before { content: '🐌'; margin-right: 0.35rem; }
+  .loser-third-worst td:first-child::before  { content: '🐌'; margin-right: 0.35rem; }
   .loser-worst td:first-child,
   .loser-second-worst td:first-child,
-  .loser-third-worst td:first-child {
-    font-weight: 700;
-  }
+  .loser-third-worst td:first-child { font-weight: 700; }
 
-  .gpu-bar {
-	width: 120px;
-	height: 8px;
-	background: rgba(255,255,255,.08);
-	border-radius: 999px;
-	overflow: hidden;
-}
-
+  /* ── ANIMATIONS ── */
+  @keyframes float   { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
+  @keyframes pulse   { 0%,100%{opacity:.4} 50%{opacity:1} }
+  @keyframes pip     { 0%,100%{opacity:0.3} 50%{opacity:1} }
+  @keyframes sweep   { 0%{left:-100%} 100%{left:100%} }
+  @keyframes loser-shake { 0%{transform:translateX(0)} 25%{transform:translateX(-2px)} 50%{transform:translateX(2px)} 75%{transform:translateX(-1px)} 100%{transform:translateX(0)} }
   @keyframes confetti-burst {
-    0% {
-      opacity: 0;
-      transform: translate(0, 0) scale(0.75);
-    }
-    40% {
-      opacity: 1;
-      transform: translate(8px, -8px) scale(1);
-    }
-    80% {
-      transform: translate(14px, -18px) scale(1);
-    }
-    100% {
-      opacity: 0;
-      transform: translate(18px, -28px) scale(0.8);
-    }
-  }
-
-  .loser-worst,
-  .loser-second-worst,
-  .loser-third-worst {
-    background: transparent;
-    box-shadow: none;
-  }
-
-  tbody tr {
-    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
-  }
-
-  .leader-section tbody tr:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 12px 30px rgba(34, 34, 34, 0.08);
-  }
-
-  .loser-section tbody tr:hover {
-    transform: translateY(0);
-    background-color: rgba(0, 0, 0, 0.04);
-  }
-
-  .loser-section tbody tr:hover {
-    animation: loser-shake 0.35s ease-in-out;
-  }
-
-  @keyframes loser-shake {
-    0% { transform: translateX(0); }
-    25% { transform: translateX(-2px); }
-    50% { transform: translateX(2px); }
-    75% { transform: translateX(-1px); }
-    100% { transform: translateX(0); }
-  }
-
-	tbody tr:last-child td {
-	border-bottom: none;
+    0%  { opacity:0; transform:translate(0,0) scale(0.75); }
+    40% { opacity:1; transform:translate(8px,-8px) scale(1); }
+    80% { transform:translate(14px,-18px) scale(1); }
+    100%{ opacity:0; transform:translate(18px,-28px) scale(0.8); }
   }
 </style>

@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'motion/react';
+import { buildHexPoints } from './hex-points';
 
 interface SnailTrackProps {
   progress: number; // 0-100
@@ -15,14 +16,8 @@ function SnailSVG({ mood }: { mood: 'happy' | 'stressed' | 'neutral' }) {
 
   // Build hex shell points centered on the shell center (cx=30, cy=22)
   const sx = 30, sy = 22, sr = 16;
-  const shellPoints = Array.from({ length: 6 }, (_, i) => {
-    const angle = (i * 60 - 90) * (Math.PI / 180);
-    return `${(sx + sr * Math.cos(angle)).toFixed(1)},${(sy + sr * Math.sin(angle)).toFixed(1)}`;
-  }).join(' ');
-  const innerShellPoints = Array.from({ length: 6 }, (_, i) => {
-    const angle = (i * 60 - 90) * (Math.PI / 180);
-    return `${(sx + (sr * 0.55) * Math.cos(angle)).toFixed(1)},${(sy + (sr * 0.55) * Math.sin(angle)).toFixed(1)}`;
-  }).join(' ');
+  const shellPoints = buildHexPoints(sx, sy, sr, { precision: 1 });
+  const innerShellPoints = buildHexPoints(sx, sy, sr * 0.55, { precision: 1 });
 
   return (
     <svg viewBox="0 0 90 55" width={58} height={36}>

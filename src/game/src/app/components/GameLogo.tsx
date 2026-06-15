@@ -1,4 +1,5 @@
 import React from 'react';
+import { buildHexPoints } from './hex-points';
 
 export function GameLogo({ size = 'normal' }: { size?: 'normal' | 'large' }) {
   const scale = size === 'large' ? 1.6 : 1;
@@ -7,14 +8,8 @@ export function GameLogo({ size = 'normal' }: { size?: 'normal' | 'large' }) {
 
   // Hex shell centered at (24, 22), R=18
   const sx = 24, sy = 22, sr = 18;
-  const shellPoints = Array.from({ length: 6 }, (_, i) => {
-    const angle = (i * 60 - 90) * (Math.PI / 180);
-    return `${(sx + sr * Math.cos(angle)).toFixed(1)},${(sy + sr * Math.sin(angle)).toFixed(1)}`;
-  }).join(' ');
-  const innerPoints = Array.from({ length: 6 }, (_, i) => {
-    const angle = (i * 60 - 90) * (Math.PI / 180);
-    return `${(sx + sr * 0.5 * Math.cos(angle)).toFixed(1)},${(sy + sr * 0.5 * Math.sin(angle)).toFixed(1)}`;
-  }).join(' ');
+  const shellPoints = buildHexPoints(sx, sy, sr, { precision: 1 });
+  const innerPoints = buildHexPoints(sx, sy, sr * 0.5, { precision: 1 });
 
   return (
     <svg viewBox="0 0 48 48" width={w} height={h}>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useDrop } from 'react-dnd';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import type { Job } from './HexGem';
 
 export interface Node {

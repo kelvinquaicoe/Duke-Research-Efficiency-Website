@@ -1,6 +1,6 @@
 import React from 'react';
 import { useDrag } from 'react-dnd';
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 import { buildHexPoints } from './hex-points';
 
 export interface Job {

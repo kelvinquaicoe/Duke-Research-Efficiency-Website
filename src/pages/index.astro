@@ -214,15 +214,6 @@ import Layout from "../layouts/Layout.astro";
 @keyframes blink {
   to { visibility: hidden; }
 }
-  /*Snail*/
-  .snail-img {
-    height: auto;
-    width: 200px;
-    margin: 1.2rem auto;
-    display: block;
-    animation: float 3s ease-in-out infinite;
-    filter: drop-shadow(0 0 10px rgba(213, 173, 77, 0.14));
-  }
 
   /* BASE */
 .snail-img {
@@ -424,39 +415,11 @@ import Layout from "../layouts/Layout.astro";
   overflow: hidden;
 }
 
-	position: relative;
+.hero > * {
+  position: relative;
+  z-index: 1;
+}
 
-
-/**/
-    overflow: hidden;
-
-	background:  
-		radial-gradient(circle at 50% 120%, rgba(83,213,253,0.06), transparent 60%),   
-		#0a0e14;
-  }
-
-  .hero::before {
-     content: "";  
-     position: absolute;
-    0.08) 18%,  inset: 0;      
-       rgba(10, 14, 20, 0) 40%    
-     ),
-	  radial-gradient(
-		circle at 50% -10%,
-		rgba(83, 213, 253, 0.12) 0%,  /* ✅ subtle glow */
-		rgba(83, 213, 253, 0.04) 25%,
-		rgba(10, 14, 20, 0) 45%
-	  );
-
-    pointer-events: none;
-  }
-
-
-
-  .hero > * {
-    position: relative;
-    z-index: 1;
-  }
 
   /* left */
   .hero-left {

@@ -15,6 +15,7 @@
     "@astrojs/netlify": "^7.0.13",
     "@astrojs/react": "^4.0.0",
     "astro": "^6.4.2",
+    "canvas-confetti": "^1.9.4",
     "framer-motion": "^12.40.0",
     "react": "^18.2.0",
     "react-dnd": "^16.0.1",

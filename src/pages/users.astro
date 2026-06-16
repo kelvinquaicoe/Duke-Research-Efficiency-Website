@@ -1,6 +1,5 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import UsersTable from '../components/UsersTable.jsx';
 ---
 
 <Layout>
@@ -22,20 +21,214 @@ import UsersTable from '../components/UsersTable.jsx';
 
   <main class="users-main">
     <section class="users-section">
+
+      <!-- SECTION HEADER -->
       <div class="section-header">
         <div>
-          <p class="section-eyebrow">Roster Index</p>
+          <p class="section-eyebrow">User Roster</p>
           <h2>All Users</h2>
-          <p class="section-description">Search and filter all users by efficiency, GPU hours, and more.</p>
+          <p class="section-description">Search and filter all users by efficiency, GPU hours, and score. Click any row to expand their profile.</p>
         </div>
         <span class="live-badge gold">Live Roster</span>
       </div>
-      <UsersTable client:load />
+
+      <!-- CONTROLS -->
+      <div class="controls">
+        <div class="search-wrap">
+          <span class="search-icon">⌕</span>
+          <input class="search-input" id="search" placeholder="Search users..." />
+        </div>
+        <select class="sort-select" id="sort">
+          <option value="eff-desc">Efficiency: High → Low</option>
+          <option value="eff-asc">Efficiency: Low → High</option>
+          <option value="gpu-desc">GPU Hours: High → Low</option>
+          <option value="score-desc">Score: High → Low</option>
+          <option value="name-asc">Name: A → Z</option>
+        </select>
+        <span class="count-text" id="count">20 of 20 users</span>
+      </div>
+
+      <!-- PROFILE PANEL -->
+      <div class="profile-panel" id="profile-panel">
+        <div class="pp-hdr">
+          <div>
+            <div class="pp-name" id="pp-name">—</div>
+            <div class="pp-meta" id="pp-meta">RANK #— · —</div>
+          </div>
+          <button class="pp-close" id="pp-close">✕ CLOSE</button>
+        </div>
+        <div class="pp-stats">
+          <div class="pp-stat">
+            <div class="pp-stat-lbl">Efficiency</div>
+            <div class="pp-stat-val" id="pp-eff">—</div>
+            <div class="pp-stat-sub">vs 68% cluster avg</div>
+          </div>
+          <div class="pp-stat">
+            <div class="pp-stat-lbl">GPU Hrs Saved</div>
+            <div class="pp-stat-val" id="pp-gpu">—</div>
+            <div class="pp-stat-sub">this month</div>
+          </div>
+          <div class="pp-stat">
+            <div class="pp-stat-lbl">Game Bonus</div>
+            <div class="pp-stat-val" id="pp-game">—</div>
+            <div class="pp-stat-sub">pts from gameplay</div>
+          </div>
+          <div class="pp-stat">
+            <div class="pp-stat-lbl">Total Score</div>
+            <div class="pp-stat-val" id="pp-score">—</div>
+            <div class="pp-stat-sub" id="pp-tier">—</div>
+          </div>
+        </div>
+        <div class="pp-footer">
+          <span class="pp-active-text">Last active: <strong id="pp-last">—</strong></span>
+          <button class="pp-btn">VIEW FULL PROFILE →</button>
+        </div>
+      </div>
+
+      <!-- TABLE -->
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th class="th-left">Name</th>
+              <th>Efficiency</th>
+              <th>GPU Hrs</th>
+              <th>Game Bonus</th>
+              <th>Total Score</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+
     </section>
   </main>
 </Layout>
 
+<script>
+const users = [
+  {rank:1,  name:'Hiii Florine',          eff:95, gpu:95,  game:850,  score:5600, tier:'blazing',  active:'2 hrs ago'},
+  {rank:2,  name:'tallest Flo',           eff:92, gpu:92,  game:500,  score:5100, tier:'blazing',  active:'4 hrs ago'},
+  {rank:3,  name:'Quantum Quinton',       eff:90, gpu:88,  game:1100, score:5300, tier:'blazing',  active:'1 hr ago'},
+  {rank:4,  name:'Best Volleybal Player', eff:88, gpu:95,  game:300,  score:4800, tier:'cruising', active:'6 hrs ago'},
+  {rank:5,  name:'Data Dana',             eff:88, gpu:86,  game:950,  score:4850, tier:'cruising', active:'3 hrs ago'},
+  {rank:6,  name:'Algorithm Aiden',       eff:86, gpu:84,  game:200,  score:4200, tier:'cruising', active:'12 hrs ago'},
+  {rank:7,  name:'Pipeline Priya',        eff:84, gpu:82,  game:600,  score:4100, tier:'cruising', active:'1 day ago'},
+  {rank:8,  name:'Kernel Ken',            eff:82, gpu:80,  game:400,  score:3900, tier:'cruising', active:'2 days ago'},
+  {rank:9,  name:'Tensor Tessa',          eff:80, gpu:78,  game:100,  score:3500, tier:'cruising', active:'2 days ago'},
+  {rank:10, name:'Vector Vance',          eff:78, gpu:76,  game:0,    score:3200, tier:'cruising', active:'3 days ago'},
+  {rank:11, name:'Aaron',                 eff:70, gpu:68,  game:0,    score:2800, tier:'active',   active:'5 hrs ago'},
+  {rank:12, name:'Laggy Lana',            eff:70, gpu:68,  game:0,    score:2800, tier:'active',   active:'1 day ago'},
+  {rank:13, name:'Ian',                   eff:68, gpu:65,  game:0,    score:2600, tier:'active',   active:'2 days ago'},
+  {rank:14, name:'Crash Carl',            eff:68, gpu:65,  game:0,    score:2600, tier:'active',   active:'4 days ago'},
+  {rank:15, name:'Theo',                  eff:66, gpu:62,  game:0,    score:2400, tier:'crawling', active:'5 days ago'},
+  {rank:16, name:'Stuck Steve',           eff:66, gpu:62,  game:0,    score:2400, tier:'crawling', active:'1 wk ago'},
+  {rank:17, name:'Frozen Fran',           eff:64, gpu:60,  game:0,    score:2200, tier:'crawling', active:'1 wk ago'},
+  {rank:18, name:'Snail Nate',            eff:62, gpu:58,  game:0,    score:2100, tier:'crawling', active:'2 wks ago'},
+  {rank:19, name:'Buffer Beth',           eff:60, gpu:55,  game:0,    score:1900, tier:'crawling', active:'2 wks ago'},
+  {rank:20, name:'Timeout Tim',           eff:58, gpu:52,  game:0,    score:1800, tier:'crawling', active:'3 wks ago'},
+];
+
+const tierLabels = {
+  blazing:  '🔥 BLAZING',
+  cruising: '⚡ CRUISING',
+  active:   '📊 ACTIVE',
+  crawling: '🐌 CRAWLING',
+};
+
+const rankEmoji = r => r===1?'🏆':r===2?'🥈':r===3?'🥉':String(r);
+const effPalette = (e) => {
+  if (e >= 85) return { text: '#10b981', a: '#10b981', b: '#78f0c3' };
+  if (e >= 75) return { text: '#d5ad4d', a: '#d5ad4d', b: '#ffdf8b' };
+  if (e >= 65) return { text: '#818cf8', a: '#818cf8', b: '#b6a9ff' };
+  return { text: '#ef4444', a: '#ef4444', b: '#fca5a5' };
+};
+
+let filtered   = [...users];
+let activeRank = null;
+
+function renderTable() {
+  const tbody = document.getElementById('tbody');
+  tbody.innerHTML = '';
+  filtered.forEach(u => {
+    const tr  = document.createElement('tr');
+    const pal = effPalette(u.eff);
+    if (activeRank === u.rank) tr.classList.add('active-row');
+    tr.innerHTML = `
+      <td class="rank-cell">${rankEmoji(u.rank)}</td>
+      <td class="name-cell">${u.name}</td>
+      <td>
+        <div class="eff-cell">
+          <span class="eff-num" style="color:${pal.text}">${u.eff}</span>
+          <div class="ebar"><div class="efill" data-width="${u.eff}%" style="width:0;--fill-a:${pal.a};--fill-b:${pal.b}"></div></div>
+        </div>
+      </td>
+      <td class="dim-cell">${u.gpu}hrs</td>
+      <td class="${u.game>0?'bonus-cell':'empty-cell'}">${u.game>0?'+'+u.game:'—'}</td>
+      <td class="score-cell">${u.score.toLocaleString()}</td>
+      <td><span class="tier ${u.tier}">${tierLabels[u.tier]}</span></td>
+    `;
+    tr.addEventListener('click', () => openProfile(u));
+    tbody.appendChild(tr);
+  });
+
+  // Kick off bar transitions after DOM insertion so they animate like the leader/loser boards.
+  requestAnimationFrame(() => {
+    tbody.querySelectorAll('.efill').forEach((bar) => {
+      bar.style.width = bar.dataset.width || '0%';
+    });
+  });
+
+  document.getElementById('count').textContent =
+    `${filtered.length} of ${users.length} users`;
+}
+
+function openProfile(u) {
+  if (activeRank === u.rank) { closeProfile(); return; }
+  activeRank = u.rank;
+  document.getElementById('pp-name').textContent  = u.name;
+  document.getElementById('pp-meta').textContent  = `RANK #${u.rank} · ${tierLabels[u.tier]}`;
+  document.getElementById('pp-eff').textContent   = u.eff + '%';
+  document.getElementById('pp-gpu').textContent   = u.gpu + 'hrs';
+  document.getElementById('pp-game').textContent  = u.game > 0 ? '+' + u.game : '0';
+  document.getElementById('pp-score').textContent = u.score.toLocaleString();
+  document.getElementById('pp-tier').textContent  = tierLabels[u.tier];
+  document.getElementById('pp-last').textContent  = u.active;
+  document.getElementById('profile-panel').classList.add('open');
+  renderTable();
+}
+
+function closeProfile() {
+  activeRank = null;
+  document.getElementById('profile-panel').classList.remove('open');
+  renderTable();
+}
+
+document.getElementById('pp-close').addEventListener('click', closeProfile);
+
+document.getElementById('search').addEventListener('input', e => {
+  const q = e.target.value.toLowerCase();
+  filtered = users.filter(u => u.name.toLowerCase().includes(q));
+  renderTable();
+});
+
+document.getElementById('sort').addEventListener('change', e => {
+  const v = e.target.value;
+  if (v === 'eff-desc')   filtered.sort((a,b) => b.eff - a.eff);
+  if (v === 'eff-asc')    filtered.sort((a,b) => a.eff - b.eff);
+  if (v === 'gpu-desc')   filtered.sort((a,b) => b.gpu - a.gpu);
+  if (v === 'score-desc') filtered.sort((a,b) => b.score - a.score);
+  if (v === 'name-asc')   filtered.sort((a,b) => a.name.localeCompare(b.name));
+  renderTable();
+});
+
+renderTable();
+</script>
+
 <style>
+  /* ── HEADER — matches your existing users header exactly ── */
   .users-header {
     display: grid;
     grid-template-columns: 1fr;
@@ -50,14 +243,12 @@ import UsersTable from '../components/UsersTable.jsx';
     backdrop-filter: blur(10px);
     box-sizing: border-box;
   }
-
   .header-brand {
     display: flex;
     align-items: center;
     gap: 1rem;
     justify-self: start;
   }
-
   .header-brand h1 {
     margin: 0;
     font-family: 'Orbitron', sans-serif;
@@ -65,33 +256,12 @@ import UsersTable from '../components/UsersTable.jsx';
     font-weight: 800;
     letter-spacing: 0.12em;
     color: #53d5fd;
-    text-shadow:
-      0 0 8px #53d5fd,
-      0 0 20px #53d5fd,
-      0 0 40px rgba(83,213,253,.5);
+    text-shadow: 0 0 8px #53d5fd, 0 0 20px #53d5fd, 0 0 40px rgba(83,213,253,.5);
     text-transform: uppercase;
   }
-
-  .logo {
-    width: 60px;
-    height: 60px;
-    object-fit: contain;
-    flex-shrink: 0;
-  }
-
-  .brand-text {
-    display: flex;
-    flex-direction: column;
-    gap: 0.2rem;
-  }
-
-  .brand-subtitle {
-    margin: 0;
-    color: #d5ad4d;
-    font-size: 0.82rem;
-    line-height: 1.3;
-  }
-
+  .logo { width: 60px; height: 60px; object-fit: contain; flex-shrink: 0; }
+  .brand-text { display: flex; flex-direction: column; gap: 0.2rem; }
+  .brand-subtitle { margin: 0; color: #d5ad4d; font-size: 0.82rem; line-height: 1.3; }
   .header-nav {
     display: flex;
     justify-content: center;
@@ -99,7 +269,6 @@ import UsersTable from '../components/UsersTable.jsx';
     gap: 3.5rem;
     justify-self: center;
   }
-
   .header-nav a {
     display: inline-block;
     font-family: 'Orbitron', sans-serif;
@@ -112,7 +281,6 @@ import UsersTable from '../components/UsersTable.jsx';
     padding: 0.4rem 0.7rem;
     border-radius: 6px;
   }
-
   .header-nav a:hover {
     background: rgba(83, 213, 253, 0.15);
     color: #b6eeff;
@@ -121,53 +289,37 @@ import UsersTable from '../components/UsersTable.jsx';
     padding: 0.75rem 1.25rem;
     border-radius: 8px;
   }
+  .header-nav .loser-link:hover { background: rgba(213, 173, 77, 0.15); color: white; }
 
-  .header-nav .leader-link {
-    color: white;
-  }
-
-  .header-nav .leader-link:hover {
-    background: rgba(83, 213, 253, 0.15);
-    color: white;
-  }
-
-  .header-nav .loser-link {
-    color: white;
-  }
-
-  .header-nav .loser-link:hover {
-    background: rgba(213, 173, 77, 0.15);
-    color: white;
-  }
-
+  /* ── MAIN — matches your existing background ── */
   .users-main {
     margin: 0;
     min-height: 100vh;
     background:
-      radial-gradient(circle at top, rgba(83, 213, 253, 0.12), transparent 35%),
-      radial-gradient(circle at bottom right, rgba(213, 173, 77, 0.1), transparent 30%),
+      radial-gradient(circle at top, rgba(83,213,253,0.12), transparent 35%),
+      radial-gradient(circle at bottom right, rgba(213,173,77,0.1), transparent 30%),
       #111;
   }
-
   .users-section {
     padding: 3rem 2rem;
     max-width: 1100px;
     margin: 0 auto;
+    color: #e5f7ff;
   }
 
+  /* ── SECTION HEADER — matches your existing card style ── */
   .section-header {
     display: flex;
     align-items: flex-end;
     justify-content: space-between;
     gap: 1.5rem;
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
     padding: 1.5rem;
-    border: 1px solid rgba(83, 213, 253, 0.28);
+    border: 1px solid rgba(83,213,253,0.28);
     border-radius: 24px;
     background: #061318;
-    box-shadow: 0 0 24px rgba(83, 213, 253, 0.12);
+    box-shadow: 0 0 24px rgba(83,213,253,0.12);
   }
-
   .section-eyebrow {
     margin: 0 0 0.6rem;
     font-family: 'Orbitron', sans-serif;
@@ -176,7 +328,6 @@ import UsersTable from '../components/UsersTable.jsx';
     text-transform: uppercase;
     color: #d5ad4d;
   }
-
   .section-header h2 {
     margin: 0 0 0.5rem;
     font-size: 2rem;
@@ -184,11 +335,8 @@ import UsersTable from '../components/UsersTable.jsx';
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: #53d5fd;
-    text-shadow:
-      0 0 8px rgba(83, 213, 253, 0.6),
-      0 0 18px rgba(83, 213, 253, 0.18);
+    text-shadow: 0 0 8px rgba(83,213,253,0.6), 0 0 18px rgba(83,213,253,0.18);
   }
-
   .section-description {
     margin: 0;
     color: #cbd5e1;
@@ -196,7 +344,6 @@ import UsersTable from '../components/UsersTable.jsx';
     max-width: 40rem;
     line-height: 1.7;
   }
-
   .live-badge {
     display: inline-flex;
     align-items: center;
@@ -209,37 +356,281 @@ import UsersTable from '../components/UsersTable.jsx';
     font-size: 0.74rem;
     letter-spacing: 0.16em;
     text-transform: uppercase;
-    box-shadow: 0 0 12px rgba(83, 213, 253, 0.25);
+    box-shadow: 0 0 12px rgba(83,213,253,0.25);
     white-space: nowrap;
   }
-
   .live-badge::before {
     content: "";
-    width: 8px;
-    height: 8px;
+    width: 8px; height: 8px;
     border-radius: 50%;
     background: currentColor;
     box-shadow: 0 0 10px currentColor;
+    animation: pulse 1.5s infinite;
   }
-
   .live-badge.gold {
     border-color: #d5ad4d;
     color: #d5ad4d;
-    box-shadow: 0 0 12px rgba(213, 173, 77, 0.25);
+    box-shadow: 0 0 12px rgba(213,173,77,0.25);
   }
 
+  /* ── CONTROLS ── */
+  .controls {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+  .search-wrap { position: relative; flex: 1 1 18rem; min-width: 14rem; }
+  .search-icon {
+    position: absolute;
+    left: 10px; top: 50%;
+    transform: translateY(-50%);
+    font-size: 12px;
+    color: #3a5a6a;
+  }
+  .search-input {
+    width: 100%;
+    background: #061318;
+    border: 1px solid rgba(83,213,253,0.2);
+    border-radius: 8px;
+    padding: 8px 12px 8px 30px;
+    font-size: 0.8rem;
+    color: #e2e8f0;
+    font-family: 'Orbitron', sans-serif;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .search-input:focus { border-color: rgba(83,213,253,0.5); }
+  .search-input::placeholder { color: #2a4a5a; }
+  .sort-select {
+    flex: 0 0 18rem;
+    min-width: 14rem;
+    background: #061318;
+    border: 1px solid rgba(83,213,253,0.2);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 0.75rem;
+    color: #94a3b8;
+    font-family: 'Orbitron', sans-serif;
+    outline: none;
+  }
+  .count-text {
+    margin-left: auto;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.7rem;
+    color: #3a5a6a;
+    letter-spacing: 0.1em;
+  }
+
+  /* ── PROFILE PANEL ── */
+  .profile-panel {
+    display: none;
+    margin-bottom: 1rem;
+    background: #061318;
+    border: 1px solid rgba(83,213,253,0.28);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 0 24px rgba(83,213,253,0.08);
+  }
+  .profile-panel.open { display: block; }
+  .pp-hdr {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid rgba(83,213,253,0.1);
+    background: rgba(83,213,253,0.03);
+  }
+  .pp-name {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #53d5fd;
+    text-shadow: 0 0 8px rgba(83,213,253,0.4);
+    margin-bottom: 3px;
+  }
+  .pp-meta {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.65rem;
+    color: #d5ad4d;
+    letter-spacing: 0.15em;
+  }
+  .pp-close {
+    background: transparent;
+    border: 1px solid rgba(83,213,253,0.2);
+    color: #3a5a6a;
+    font-size: 0.7rem;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: 'Orbitron', sans-serif;
+    letter-spacing: 0.08em;
+    transition: all 0.2s;
+  }
+  .pp-close:hover { color: #53d5fd; border-color: rgba(83,213,253,0.5); }
+  .pp-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: rgba(83,213,253,0.08);
+  }
+  .pp-stat { background: #061318; padding: 1.25rem 1.5rem; }
+  .pp-stat-lbl {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.6rem;
+    letter-spacing: 0.18em;
+    color: #d5ad4d;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+  .pp-stat-val {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #f8fafc;
+    line-height: 1;
+    margin-bottom: 0.3rem;
+    text-shadow: 0 0 12px rgba(83,213,253,0.2);
+  }
+  .pp-stat-sub { font-size: 0.7rem; color: #3a5a6a; }
+  .pp-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.85rem 1.5rem;
+    border-top: 1px solid rgba(83,213,253,0.08);
+  }
+  .pp-active-text { font-size: 0.72rem; color: #3a5a6a; }
+  .pp-active-text strong { color: #53d5fd; }
+  .pp-btn {
+    background: #53d5fd;
+    color: #061318;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    font-family: 'Orbitron', sans-serif;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: box-shadow 0.2s;
+  }
+  .pp-btn:hover { box-shadow: 0 0 20px rgba(83,213,253,0.5); }
+
+  /* ── TABLE ── */
+  .table-wrap {
+    background: #061318;
+    border: 1px solid rgba(83,213,253,0.28);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 0 24px rgba(83,213,253,0.08);
+    color: #b6eeff;
+  }
+  .table-wrap :global(table) { width: 100%; border-collapse: collapse; }
+  thead th {
+    padding: 0.9rem 1.25rem;
+    text-align: center;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    color: #53d5fd;
+    background: rgba(83,213,253,0.06);
+    border-bottom: 1px solid rgba(83,213,253,0.12);
+    text-transform: uppercase;
+  }
+  .th-left { text-align: left; }
+  .table-wrap :global(tbody tr) {
+    border-bottom: 1px solid rgba(83,213,253,0.06);
+    cursor: pointer;
+    transition: background 0.15s, transform 0.15s;
+  }
+  .table-wrap :global(tbody tr:hover) { background: rgba(83,213,253,0.05); transform: translateY(-1px); }
+  .table-wrap :global(tbody tr.active-row) {
+    background: rgba(83,213,253,0.08);
+    border-left: 2px solid #53d5fd;
+  }
+  .table-wrap :global(tbody tr:last-child) { border-bottom: none; }
+  .table-wrap :global(td) {
+    padding: 1rem 1.25rem;
+    text-align: center;
+    vertical-align: middle;
+    color: #b6eeff;
+    font-size: 0.85rem;
+  }
+  .table-wrap :global(.rank-cell) { font-size: 1rem; font-weight: 700; color: #d5ad4d; width: 52px; }
+  .table-wrap :global(.name-cell) { text-align: left; font-weight: 600; color: #e2e8f0; font-family: 'Orbitron', sans-serif; font-size: 0.75rem; letter-spacing: 0.05em; }
+  .table-wrap :global(.eff-cell) { display: flex; align-items: center; gap: 8px; justify-content: center; }
+  .table-wrap :global(.eff-num) { font-weight: 700; width: 28px; text-align: right; font-family: 'Orbitron', sans-serif; }
+  /* efficiency bars — styled to match leader/loser board bars */
+  .table-wrap :global(.ebar) {
+    width: 120px;
+    height: 8px;
+    background: rgba(255,255,255,.08);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .table-wrap :global(.efill) {
+    height: 100%;
+    width: 0;
+    background: linear-gradient(90deg, var(--fill-a, #53d5fd), var(--fill-b, #b6eeff));
+    border-radius: 999px;
+    box-shadow: 0 0 12px var(--fill-a, #53d5fd);
+    transition: width 1.6s ease-out;
+    position: relative;
+    overflow: hidden;
+  }
+  .table-wrap :global(.efill::after) {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: rgba(255,255,255,.35);
+    animation: sweep 2.5s infinite;
+  }
+  .table-wrap :global(.dim-cell) { color: #7c98a9; }
+  .table-wrap :global(.bonus-cell) { color: #d5ad4d; font-weight: 700; }
+  .table-wrap :global(.empty-cell) { color: #456474; }
+  .table-wrap :global(.score-cell) { color: #f8fafc; font-weight: 700; font-family: 'Orbitron', sans-serif; }
+
+  /* tier badges */
+  .table-wrap :global(.tier) {
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    font-family: 'Orbitron', sans-serif;
+    white-space: nowrap;
+  }
+  .table-wrap :global(.tier.blazing)  { background: rgba(239,68,68,0.12);  color: #f87171; border: 1px solid rgba(239,68,68,0.25); }
+  .table-wrap :global(.tier.cruising) { background: rgba(213,173,77,0.12);  color: #d5ad4d; border: 1px solid rgba(213,173,77,0.25); }
+  .table-wrap :global(.tier.active)   { background: rgba(129,140,248,0.12); color: #818cf8; border: 1px solid rgba(129,140,248,0.25); }
+  .table-wrap :global(.tier.crawling) { background: rgba(83,213,253,0.08);  color: #53d5fd; border: 1px solid rgba(83,213,253,0.2); }
+
+  @keyframes pulse { 0%,100%{opacity:0.4} 50%{opacity:1} }
+  @keyframes sweep { 0%{left:-100%} 60%{left:100%} 100%{left:100%} }
+
   @media (max-width: 768px) {
-    .header-nav {
-      gap: 1.5rem;
-    }
+    .header-nav { gap: 1.5rem; }
+    .section-header { flex-direction: column; align-items: flex-start; }
+    .section-header h2 { font-size: 1.5rem; }
+    .pp-stats { grid-template-columns: repeat(2, 1fr); }
+    .users-section { padding: 1.5rem 1rem; }
+  }
 
-    .section-header {
-      flex-direction: column;
-      align-items: flex-start;
+  @media (max-width: 560px) {
+    .search-wrap,
+    .sort-select {
+      flex: 1 1 100%;
+      min-width: 0;
     }
-
-    .section-header h2 {
-      font-size: 1.5rem;
+    .count-text {
+      flex: 1 1 100%;
+      margin-left: 0;
+      text-align: right;
     }
   }
 </style>

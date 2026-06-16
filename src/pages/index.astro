@@ -32,13 +32,23 @@ import Layout from "../layouts/Layout.astro";
 		$ cluster --status <span class="cursor">▮</span>
 	</div>
 	  <h1 class="hero-title"><span>Cluster Analytics</span><br>  <span class="platform">Platform</span></h1>
-	  <p class="hero-tagline">
+      <p class="hero-tagline">
 		Real time cluster analytics for researchers who care about performance. Command the cluster. 
 		Save GPU hours. Move Slurm forward.
 	  </p>
-      <div class="hero-badges">
-        <span class="sys-badge online">● SYSTEM ONLINE</span>
-        <span class="sys-badge load">LOW LOAD</span>
+      <div class="hero-status-panel">
+        <div class="hero-status-top">
+          <span class="hero-live-pill">
+            <span class="hero-live-dot"></span>
+            Live Cluster Status
+          </span>
+        </div>
+        <div class="hero-status-grid">
+          <div class="hero-status-card load">
+            <span class="status-label">Load</span>
+            <strong>Low Load</strong>
+          </div>
+        </div>
       </div>
       <a href="/game" class="cta-btn">▶ PLAY CLUSTER _cmd</a>
     </div>
@@ -47,8 +57,7 @@ import Layout from "../layouts/Layout.astro";
     <div class="hero-right">
       <div class="util-panel blazing">
         <div class="util-header">
-          <span class="live-dot"></span>
-          LIVE slurm-o
+          slurm-o status
         </div>
         <img class="snail-img cruising" src="/snail.png" alt="slurm-o" />
 		<div class="snail-speed">  
@@ -77,7 +86,6 @@ import Layout from "../layouts/Layout.astro";
           <h1>Leader Board</h1>
           <p class="board-subtitle">TOP 10 COMMANDERS</p>
         </div>
-        <span class="live-badge">LIVE</span>
       </div>
       <table>
         <thead>
@@ -113,7 +121,6 @@ import Layout from "../layouts/Layout.astro";
           <h1>Loser Board</h1>
           <p class="board-subtitle">BOTTOM 10 COMMANDERS</p>
         </div>
-        <span class="live-badge">LIVE</span>
       </div>
       <table>
         <thead>
@@ -444,16 +451,87 @@ import Layout from "../layouts/Layout.astro";
     color: #94a3b8;
     margin-top: 0.35rem;
   }
-  .hero-badges { display: flex; gap: 0.75rem; flex-wrap: wrap; }
-  .sys-badge {
-    padding: 0.3rem 0.75rem;
+  .hero-status-panel {
+    width: min(100%, 30rem);
+    padding: 1rem 1.1rem;
+    border: 1px solid rgba(83,213,253,0.2);
+    border-radius: 18px;
+    background: linear-gradient(180deg, rgba(6,19,24,0.96), rgba(6,19,24,0.7));
+    box-shadow: 0 18px 40px rgba(0,0,0,0.24), 0 0 18px rgba(83,213,253,0.08);
+    backdrop-filter: blur(10px);
+  }
+  .hero-status-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.9rem;
+  }
+  .hero-live-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.4rem 0.8rem;
     border-radius: 999px;
-    font-size: 0.65rem;
-    letter-spacing: 0.12em;
+    border: 1px solid rgba(83,213,253,0.28);
+    background: rgba(83,213,253,0.08);
+    color: #b6eeff;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+  .hero-live-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #10b981;
+    box-shadow: 0 0 12px rgba(16,185,129,0.9);
+    animation: pulse 1.5s infinite;
+  }
+  .hero-status-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+    gap: 0.8rem;
+  }
+  .hero-status-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding: 0.95rem 1rem;
+    border-radius: 14px;
+    border: 1px solid transparent;
+    background: rgba(255,255,255,0.03);
+  }
+  .hero-status-card .status-label {
+    color: #7a8ba3;
+    font-size: 0.7rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
     font-family: 'Orbitron', sans-serif;
   }
-  .sys-badge.online { border: 1px solid #10b981; color: #10b981; background: rgba(16,185,129,0.08); }
-  .sys-badge.load   { border: 1px solid #53d5fd; color: #53d5fd; background: rgba(83,213,253,0.08); }
+  .hero-status-card strong {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .hero-status-card.online {
+    border-color: rgba(16,185,129,0.28);
+    background: linear-gradient(180deg, rgba(16,185,129,0.14), rgba(16,185,129,0.04));
+  }
+  .hero-status-card.online strong {
+    color: #78f0c3;
+    text-shadow: 0 0 14px rgba(16,185,129,0.22);
+  }
+  .hero-status-card.load {
+    border-color: rgba(213,173,77,0.28);
+    background: linear-gradient(180deg, rgba(213,173,77,0.14), rgba(213,173,77,0.04));
+  }
+  .hero-status-card.load strong {
+    color: #ffdf8b;
+    text-shadow: 0 0 14px rgba(213,173,77,0.22);
+  }
   .cta-btn {
     display: inline-block;
     padding: 0.85rem 2rem;
@@ -493,16 +571,9 @@ import Layout from "../layouts/Layout.astro";
     letter-spacing: 0.18em;
     display: flex;
     justify-content: center;
-    gap: 0.4rem;
     margin-bottom: 1rem;
-  }
-  .live-dot {
-    width: 6px;
-    height: 6px;
-    background: #53d5fd;
-    border-radius: 50%;
-    box-shadow: 0 0 8px #53d5fd;
-    animation: pulse 1.5s infinite;
+    text-transform: uppercase;
+    font-family: 'Orbitron', sans-serif;
   }
 
   .util-status {
@@ -552,6 +623,17 @@ import Layout from "../layouts/Layout.astro";
     .util-panel {
       padding: 1.75rem 1.5rem;
     }
+
+    .hero-status-top {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .hero-status-grid {
+      grid-template-columns: 1fr;
+    }
   }
 
   /* ── SECTIONS ── */
@@ -578,26 +660,6 @@ import Layout from "../layouts/Layout.astro";
     font-family: 'Orbitron', sans-serif;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-  }
-  .live-badge {
-    padding: 0.35rem 0.8rem;
-    border: 1px solid #53d5fd;
-    color: #53d5fd;
-    border-radius: 999px;
-    font-size: 0.75rem;
-    letter-spacing: 0.15em;
-    box-shadow: 0 0 12px rgba(83,213,253,.25);
-    font-family: 'Orbitron', sans-serif;
-  }
-  .live-badge::before {
-    content: "";
-    width: 8px;
-    height: 8px;
-    background: currentColor;
-    border-radius: 50%;
-    display: inline-block;
-    margin-right: 6px;
-    animation: pulse 1.5s infinite;
   }
   .dashboard-card {
     backdrop-filter: blur(8px);

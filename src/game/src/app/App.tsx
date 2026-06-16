@@ -11,6 +11,8 @@ import type { Node } from './components/NodeCard';
 import { SnailTrack } from './components/SnailTrack';
 import { GameLogo } from './components/GameLogo';
 
+let confettiSafe: any = null;
+
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 type GamePhase = 'start' | 'playing' | 'levelup' | 'gameover';
@@ -282,6 +284,8 @@ export default function App({ embedded = false }: AppProps) {
       }
     }, 2800);
   }, [snailProgress, phase, level]);
+
+  
 
   // ─── Assign job to node ────────────────────────────────────────────────────
 

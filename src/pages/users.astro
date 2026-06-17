@@ -1,23 +1,10 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import SiteHeader from '../components/SiteHeader.astro';
 ---
 
 <Layout>
-  <header class="users-header">
-    <div class="header-brand">
-      <img class="logo" src="/Lboard_Logo.png" alt="LBoard Logo" />
-      <div class="brand-text">
-        <h1>Cluster Command</h1>
-        <p class="brand-subtitle">Optimize jobs. Save GPU hours. Move the snail.</p>
-      </div>
-    </div>
-    <nav class="header-nav">
-      <a href="/">Game</a>
-      <a class="leader-link" href="/#leader-section">Leader Board</a>
-      <a class="loser-link" href="/#loser-section">Loser Board</a>
-      <a href="/users">Users</a>
-    </nav>
-  </header>
+  <SiteHeader context="users" />
 
   <main class="users-main">
     <section class="users-section">
@@ -25,8 +12,7 @@ import Layout from '../layouts/Layout.astro';
       <!-- SECTION HEADER -->
       <div class="section-header">
         <div>
-          <p class="section-eyebrow">User Roster</p>
-          <h2>All Users</h2>
+          <h2>User Roster</h2>
           <p class="section-description">Search and filter all users by efficiency, GPU hours, and score. Click any row to expand their profile.</p>
         </div>
         <span class="live-badge gold">Live Roster</span>
@@ -139,11 +125,15 @@ const tierLabels = {
 };
 
 const rankEmoji = r => r===1?'🏆':r===2?'🥈':r===3?'🥉':String(r);
-const effPalette = (e) => {
-  if (e >= 85) return { text: '#10b981', a: '#10b981', b: '#78f0c3' };
-  if (e >= 75) return { text: '#d5ad4d', a: '#d5ad4d', b: '#ffdf8b' };
-  if (e >= 65) return { text: '#818cf8', a: '#818cf8', b: '#b6a9ff' };
-  return { text: '#ef4444', a: '#ef4444', b: '#fca5a5' };
+const maxRank = Math.max(...users.map((u) => u.rank));
+const rankPalette = (rank) => {
+  // Match leader/loser board bar styling:
+  // - top 5: teal
+  // - bottom 5: red
+  // - everyone else: gold
+  if (rank <= 5) return { text: '#53d5fd', a: '#53d5fd', b: '#b6eeff' };
+  if (rank > maxRank - 5) return { text: '#ef4444', a: '#ef4444', b: '#fca5a5' };
+  return { text: '#d5ad4d', a: '#d5ad4d', b: '#ffebaf' };
 };
 
 let filtered   = [...users];
@@ -154,7 +144,7 @@ function renderTable() {
   tbody.innerHTML = '';
   filtered.forEach(u => {
     const tr  = document.createElement('tr');
-    const pal = effPalette(u.eff);
+    const pal = rankPalette(u.rank);
     if (activeRank === u.rank) tr.classList.add('active-row');
     tr.innerHTML = `
       <td class="rank-cell">${rankEmoji(u.rank)}</td>
@@ -228,69 +218,6 @@ renderTable();
 </script>
 
 <style>
-  /* ── HEADER — matches your existing users header exactly ── */
-  .users-header {
-    display: grid;
-    grid-template-columns: 1fr;
-    row-gap: 0.8rem;
-    align-items: center;
-    padding: 0.5rem 1rem;
-    color: #fff;
-    background: #061318;
-    border-bottom: 1px solid #53d5fd;
-    box-shadow: 0 0 20px rgba(83, 213, 253, 0.5);
-    min-height: 64px;
-    backdrop-filter: blur(10px);
-    box-sizing: border-box;
-  }
-  .header-brand {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    justify-self: start;
-  }
-  .header-brand h1 {
-    margin: 0;
-    font-family: 'Orbitron', sans-serif;
-    font-size: 2rem;
-    font-weight: 800;
-    letter-spacing: 0.12em;
-    color: #53d5fd;
-    text-shadow: 0 0 8px #53d5fd, 0 0 20px #53d5fd, 0 0 40px rgba(83,213,253,.5);
-    text-transform: uppercase;
-  }
-  .logo { width: 60px; height: 60px; object-fit: contain; flex-shrink: 0; }
-  .brand-text { display: flex; flex-direction: column; gap: 0.2rem; }
-  .brand-subtitle { margin: 0; color: #d5ad4d; font-size: 0.82rem; line-height: 1.3; }
-  .header-nav {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 3.5rem;
-    justify-self: center;
-  }
-  .header-nav a {
-    display: inline-block;
-    font-family: 'Orbitron', sans-serif;
-    font-size: 0.8rem;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: white;
-    text-decoration: none;
-    transition: all 0.2s ease;
-    padding: 0.4rem 0.7rem;
-    border-radius: 6px;
-  }
-  .header-nav a:hover {
-    background: rgba(83, 213, 253, 0.15);
-    color: #b6eeff;
-    box-shadow: 0 0 12px rgba(83, 213, 253, 0.35);
-    transform: translateY(-2px);
-    padding: 0.75rem 1.25rem;
-    border-radius: 8px;
-  }
-  .header-nav .loser-link:hover { background: rgba(213, 173, 77, 0.15); color: white; }
-
   /* ── MAIN — matches your existing background ── */
   .users-main {
     margin: 0;
@@ -381,7 +308,12 @@ renderTable();
     margin-bottom: 1rem;
     flex-wrap: wrap;
   }
-  .search-wrap { position: relative; flex: 1 1 18rem; min-width: 14rem; }
+  .search-wrap {
+    position: relative;
+    flex: 1 1 18rem;
+    min-width: 14rem;
+    max-width: 24rem;
+  }
   .search-icon {
     position: absolute;
     left: 10px; top: 50%;
@@ -404,8 +336,9 @@ renderTable();
   .search-input:focus { border-color: rgba(83,213,253,0.5); }
   .search-input::placeholder { color: #2a4a5a; }
   .sort-select {
-    flex: 0 0 18rem;
+    flex: 1 1 18rem;
     min-width: 14rem;
+    max-width: 18rem;
     background: #061318;
     border: 1px solid rgba(83,213,253,0.2);
     border-radius: 8px;
@@ -614,7 +547,6 @@ renderTable();
   @keyframes sweep { 0%{left:-100%} 60%{left:100%} 100%{left:100%} }
 
   @media (max-width: 768px) {
-    .header-nav { gap: 1.5rem; }
     .section-header { flex-direction: column; align-items: flex-start; }
     .section-header h2 { font-size: 1.5rem; }
     .pp-stats { grid-template-columns: repeat(2, 1fr); }

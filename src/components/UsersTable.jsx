@@ -203,7 +203,7 @@ export default function UsersTable() {
         }
 
         .search-input {
-          width: 250px;
+          width: 168px;
         }
 
         .filter-select {

@@ -1,30 +1,14 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import SiteHeader from "../components/SiteHeader.astro";
 ---
 <Layout>
-<header class="header">
-  <div class="header-brand">
-    <img class="logo" src="/Lboard_Logo.png" alt="LBoard Logo" />
-    <div class="brand-text">
-      <h1>
-        <span class="cluster-text">Cluster</span>
-        <span class="cmd-text">_cmd</span>
-      </h1>
-      <p class="brand-subtitle">Optimize jobs. Save GPU hours. Move the snail.</p>
-    </div>
-  </div>
-  <nav class="header-nav">
-    <a href="/game">Game</a>
-    <a class="leader-link" href="#leader-section">Leader Board</a>
-    <a class="loser-link" href="#loser-section">Loser Board</a>
-    <a href="/users">Users</a>
-  </nav>
-</header>
+<SiteHeader context="home" />
 
 <main>
 
   <!-- HERO -->
-  <section class="hero">
+  <section id="hero" class="hero">
 
     <!-- LEFT -->
     <div class="hero-left">
@@ -305,20 +289,6 @@ import Layout from "../layouts/Layout.astro";
 
  
 
-  /* ── HEADER ── */
-  header {
-    height: 70px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0.5rem 1.5rem;
-    background: #061318;
-    box-shadow: 0 0 20px rgba(83,213,253,0.5);
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
-
   .terminal {
 	opacity: 0.8
   }
@@ -351,53 +321,6 @@ import Layout from "../layouts/Layout.astro";
 	color: #5c7c7c;
 	margin-top: 0.2rem;
   }
-  .header-brand {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-  }
-  .logo {
-    width: 60px;
-    height: 60px;
-    object-fit: contain;
-    flex-shrink: 0;
-  }
-  .brand-text { display: flex; flex-direction: column; gap: 0.2rem; }
-  .header-brand h1 {
-    font-family: 'Orbitron', sans-serif;
-    letter-spacing: 0.08em;
-    font-weight: 800;
-    margin: 0;
-  }
-  .cluster-text { color: #d8d8d8; }
-  .cmd-text { color: #53d5fd; }
-  .brand-subtitle { margin: 0; color: #d5ad4d; font-size: 0.82rem; }
-  .header-nav {
-    display: flex;
-    align-items: center;
-    gap: 2.5rem;
-    margin-left: auto;
-  }
-  .header-nav a {
-    display: inline-block;
-    color: white;
-    text-decoration: none;
-    transition: all 0.2s ease;
-    padding: 0.4rem 0.7rem;
-    border-radius: 6px;
-    font-size: 0.8rem;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    font-family: 'Orbitron', sans-serif;
-  }
-  .header-nav a:hover {
-    background: rgba(83,213,253,0.15);
-    color: #b6eeff;
-    box-shadow: 0 0 12px rgba(83,213,253,0.35);
-    transform: translateY(-2px);
-  }
-  .header-nav a.loser-link:hover { background: rgba(213,173,77,0.15); color: white; }
-
   /* ── HERO ── */
 .hero {
   position: relative;

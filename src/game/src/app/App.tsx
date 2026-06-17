@@ -332,7 +332,7 @@ export default function App({ embedded = false }: AppProps) {
     return (
       <DndProvider backend={HTML5Backend}>
         <div style={{
-          minHeight: gameViewportHeight, background: '#050a14',
+          minHeight: "90vh", background: '#050a14',
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
           fontFamily: 'Inter, sans-serif',
           backgroundImage: 'radial-gradient(ellipse 70% 50% at 30% 40%, #0d2044 0%, #050a14 65%)',

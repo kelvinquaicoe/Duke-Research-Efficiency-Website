@@ -290,38 +290,48 @@ import SiteHeader from "../components/SiteHeader.astro";
       applyLoadState(null);
 
       const loadLiveBoards = async () => {
-        try {
-          const response = await fetch('/api/gpu-metrics.json?ts=' + Date.now(), { cache: 'no-store' });
-          const data = await response.json();
+        const cacheBust = Date.now();
+        const endpoints = [
+          `/api/gpu-metrics.json?ts=${cacheBust}`,
+          `/.netlify/functions/gpu-metrics?ts=${cacheBust}`,
+        ];
 
-          if (!response.ok || !data?.ok) {
-            throw new Error(data?.error || `Request failed (${response.status})`);
+        for (const endpoint of endpoints) {
+          try {
+            const response = await fetch(endpoint, { cache: 'no-store' });
+            const data = await response.json().catch(() => null);
+
+            if (!response.ok || !data?.ok) {
+              throw new Error(data?.error || `Request failed (${response.status})`);
+            }
+
+            const topTen = Array.isArray(data.leaderboard) ? data.leaderboard : [];
+            const bottomTen = Array.isArray(data.wallOfShame) ? data.wallOfShame.slice(0, 10) : [];
+            const updatedAt = data.fetchedAt ? new Date(data.fetchedAt).toLocaleString() : '—';
+            const clusterStatus = data.clusterStatus ?? null;
+
+            applyLoadState(
+              clusterStatus?.percent === null || clusterStatus?.percent === undefined
+                ? null
+                : Number(clusterStatus.percent)
+            );
+
+            renderBoard(leaderBody, topTen, 'leader');
+            renderBoard(loserBody, bottomTen, 'loser');
+            if (leaderLast) leaderLast.textContent = `Updated ${updatedAt}`;
+            if (loserLast) loserLast.textContent = `Updated ${updatedAt}`;
+            return;
+          } catch (error) {
+            // Try the next endpoint.
           }
-
-          const topTen = Array.isArray(data.leaderboard) ? data.leaderboard : [];
-          const bottomTen = Array.isArray(data.wallOfShame) ? data.wallOfShame.slice(0, 10) : [];
-          const updatedAt = data.fetchedAt ? new Date(data.fetchedAt).toLocaleString() : '—';
-
-          const clusterStatus = data.clusterStatus ?? null;
-
-          applyLoadState(
-            clusterStatus?.percent === null || clusterStatus?.percent === undefined
-              ? null
-              : Number(clusterStatus.percent)
-          );
-
-          renderBoard(leaderBody, topTen, 'leader');
-          renderBoard(loserBody, bottomTen, 'loser');
-          if (leaderLast) leaderLast.textContent = `Updated ${updatedAt}`;
-          if (loserLast) loserLast.textContent = `Updated ${updatedAt}`;
-        } catch (error) {
-          const message = 'Could not load live data. Retry by refreshing the page.';
-          if (leaderBody) leaderBody.innerHTML = `<tr><td colspan="5" class="board-empty">${message}</td></tr>`;
-          if (loserBody) loserBody.innerHTML = `<tr><td colspan="5" class="board-empty">${message}</td></tr>`;
-          applyLoadState(null);
-          if (leaderLast) leaderLast.textContent = 'Offline';
-          if (loserLast) loserLast.textContent = 'Offline';
         }
+
+        const message = 'Could not load live data. Retry by refreshing the page.';
+        if (leaderBody) leaderBody.innerHTML = `<tr><td colspan="5" class="board-empty">${message}</td></tr>`;
+        if (loserBody) loserBody.innerHTML = `<tr><td colspan="5" class="board-empty">${message}</td></tr>`;
+        applyLoadState(null);
+        if (leaderLast) leaderLast.textContent = 'Offline';
+        if (loserLast) loserLast.textContent = 'Offline';
       };
 
       loadLiveBoards();

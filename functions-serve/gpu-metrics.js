@@ -54,6 +54,44 @@ function toMap(results) {
   return map;
 }
 
+function calculateWeightedLoad(users) {
+  let weightedSum = 0;
+  let weightTotal = 0;
+
+  for (const user of users) {
+    const utilization = user.avgUtilPct;
+    const allocWeight = user.gpuHoursAlloc ?? user.gpuHoursEffective ?? null;
+    const weight = allocWeight !== null && Number.isFinite(allocWeight) ? Math.max(0, allocWeight) : 0;
+
+    if (utilization === null || !Number.isFinite(utilization) || weight <= 0) continue;
+
+    weightedSum += utilization * weight;
+    weightTotal += weight;
+  }
+
+  return weightTotal > 0 ? weightedSum / weightTotal : null;
+}
+
+function deriveLoadState(weightedLoad) {
+  const load = Number.isFinite(weightedLoad ?? Number.NaN)
+    ? Math.max(0, Math.min(100, weightedLoad))
+    : null;
+
+  if (load === null) {
+    return { state: "offline", label: "OFFLINE", percent: null };
+  }
+
+  if (load < 40) {
+    return { state: "crawling", label: "CRAWLING", percent: Math.round(load) };
+  }
+
+  if (load < 75) {
+    return { state: "cruising", label: "CRUISING", percent: Math.round(load) };
+  }
+
+  return { state: "blazing", label: "BLAZING", percent: Math.round(load) };
+}
+
 export async function handler(event) {
   const params = event.queryStringParameters || {};
   const lookback = params.lookback || "7d";
@@ -112,6 +150,8 @@ export async function handler(event) {
       .sort((a, b) => (a.avgUtilPct ?? 100) - (b.avgUtilPct ?? 100))
       .slice(0, 20);
 
+    const weightedLoad = calculateWeightedLoad(users);
+
     return {
       statusCode: 200,
       headers: {
@@ -126,6 +166,8 @@ export async function handler(event) {
         lookback,
         minHours,
         fetchedAt: new Date().toISOString(),
+        clusterStatus: deriveLoadState(weightedLoad),
+        loadBasis: weightedLoad === null ? "offline" : "gpu-hours-weighted",
         leaderboard,
         wallOfShame,
         allUsers: users,

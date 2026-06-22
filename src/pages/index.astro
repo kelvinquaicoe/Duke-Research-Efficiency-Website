@@ -33,6 +33,7 @@ import SiteHeader from "../components/SiteHeader.astro";
             <strong id="hero-load-status">BUSY</strong>
           </div>
         </div>
+        <p class="hero-live-error" id="hero-live-error" hidden></p>
       </div>
       <a href="/game" class="cta-btn">▶ PLAY CLUSTER _cmd</a>
     </div>
@@ -209,8 +210,15 @@ import SiteHeader from "../components/SiteHeader.astro";
       const heroLoadStatus = document.getElementById('hero-load-status');
       const leaderLast = document.getElementById('leader-last');
       const loserLast = document.getElementById('loser-last');
+      const heroLiveError = document.getElementById('hero-live-error');
       const leaderBody = document.getElementById('leader-tbody');
       const loserBody = document.getElementById('loser-tbody');
+
+      const setHeroLiveError = (message) => {
+        if (!heroLiveError) return;
+        heroLiveError.textContent = message || '';
+        heroLiveError.hidden = !message;
+      };
 
       const getLoadState = (averageLoad) => {
         const load = Number.isFinite(averageLoad)
@@ -295,6 +303,7 @@ import SiteHeader from "../components/SiteHeader.astro";
           `/api/gpu-metrics.json?ts=${cacheBust}`,
           `/.netlify/functions/gpu-metrics?ts=${cacheBust}`,
         ];
+        let lastErrorMessage = '';
 
         for (const endpoint of endpoints) {
           try {
@@ -316,12 +325,14 @@ import SiteHeader from "../components/SiteHeader.astro";
                 : Number(clusterStatus.percent)
             );
 
+            setHeroLiveError(data.error ? `Live data error: ${data.error}` : '');
             renderBoard(leaderBody, topTen, 'leader');
             renderBoard(loserBody, bottomTen, 'loser');
             if (leaderLast) leaderLast.textContent = `Updated ${updatedAt}`;
             if (loserLast) loserLast.textContent = `Updated ${updatedAt}`;
             return;
           } catch (error) {
+            lastErrorMessage = error instanceof Error ? error.message : 'Unknown live data error';
             // Try the next endpoint.
           }
         }
@@ -329,6 +340,7 @@ import SiteHeader from "../components/SiteHeader.astro";
         const message = 'Could not load live data. Retry by refreshing the page.';
         if (leaderBody) leaderBody.innerHTML = `<tr><td colspan="5" class="board-empty">${message}</td></tr>`;
         if (loserBody) loserBody.innerHTML = `<tr><td colspan="5" class="board-empty">${message}</td></tr>`;
+        setHeroLiveError(lastErrorMessage || 'Live data is unavailable right now. Check PROMETHEUS_URL and PROMETHEUS_TOKEN in Vercel.');
         applyLoadState(null);
         if (leaderLast) leaderLast.textContent = 'Offline';
         if (loserLast) loserLast.textContent = 'Offline';
@@ -668,6 +680,12 @@ animation: bounce 0.6s ease-in-out infinite;
   .hero-status-card.offline strong {
     color: #94a3b8;
     text-shadow: none;
+  }
+  .hero-live-error {
+    margin: 0.65rem 0 0;
+    color: #ff8f8f;
+    font-size: 0.8rem;
+    line-height: 1.4;
   }
   .cta-btn {
     display: inline-block;

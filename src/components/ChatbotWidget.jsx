@@ -75,7 +75,7 @@ export default function ChatbotWidget() {
                 letterSpacing: '0.04em',
               }}
             >
-              Slurm<span style={{ color: '#00c7ff' }}>-O</span> AI Assistant
+              Slurm<span style={{ color: '#00c7ff' }}>-O</span> AI
             </h3>
             <button
               onClick={handleClose}

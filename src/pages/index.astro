@@ -1,6 +1,7 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import SiteHeader from "../components/SiteHeader.astro";
+const gameHref = `${import.meta.env.BASE_URL || '/'}game`;
 ---
 <Layout>
 <SiteHeader context="home" />
@@ -35,7 +36,7 @@ import SiteHeader from "../components/SiteHeader.astro";
         </div>
         <p class="hero-live-error" id="hero-live-error" hidden></p>
       </div>
-      <a href="/game" class="cta-btn">▶ PLAY CLUSTER _cmd</a>
+      <a href={gameHref} class="cta-btn">▶ PLAY CLUSTER _cmd</a>
     </div>
 
     <!-- RIGHT: Slurm-o dashboard unchanged -->

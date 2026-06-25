@@ -8,6 +8,8 @@ import slurmAngry from "../assets/slurmo-angry.png";
 import slurmGoodbye1 from "../assets/slurmo-goodbye-1.png";
 import slurmGoodbye2 from "../assets/slurmo-goodbye-2.png";
 
+const MASCOT_FALLBACK_IMG = slurmNeutral;
+
 // ─── Emotion System ───────────────────────────────────────────────────────────
 
 type Emotion =
@@ -18,7 +20,13 @@ type Emotion =
   | "excited"
   | "angry";
 
-const EMOTION_IMGS: Record<Emotion, string> = {
+type ImageAsset = string | { readonly src: string };
+
+function imageSrc(asset: ImageAsset): string {
+  return typeof asset === "string" ? asset : asset.src;
+}
+
+const EMOTION_IMGS: Record<Emotion, ImageAsset> = {
   neutral: slurmNeutral,
   curious: slurmCurious,
   thinking: slurmThinking,
@@ -26,7 +34,7 @@ const EMOTION_IMGS: Record<Emotion, string> = {
   confused: slurmConfused,
   angry: slurmAngry,
 };
-const GOODBYE_IMGS = [slurmGoodbye1, slurmGoodbye2];
+const GOODBYE_IMGS: ImageAsset[] = [slurmGoodbye1, slurmGoodbye2];
 
 // Eye types:
 //   "line"  — closed/squint: just a curved stroke (like the reference sketches)
@@ -714,7 +722,7 @@ function Avatar({ emotion, eyeTarget, centerX, centerY, isExiting }: AvatarProps
 
   const particles = useParticles(
     emotion,
-    emotion !== "neutral" && emotion !== "concerned"
+    emotion !== "neutral"
   );
 
   const isThinking = !isExiting && emotion === "thinking";
@@ -1096,6 +1104,7 @@ const EXIT_STYLES = `
 `;
 
 export default function App() {
+  const startsEmbedded = typeof window !== "undefined" && window.self !== window.top;
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -1106,14 +1115,26 @@ export default function App() {
   const [avatarCenter, setAvatarCenter] = useState({ x: 0, y: 0 });
   const [isExiting, setIsExiting] = useState(false);
   const [goodbyeFrame, setGoodbyeFrame] = useState(0);
+
+  const handleMascotImageError = useCallback(
+    (event: React.SyntheticEvent<HTMLImageElement>) => {
+      const target = event.currentTarget;
+      if (target.dataset.fallbackApplied === "true") return;
+      target.dataset.fallbackApplied = "true";
+      target.src = imageSrc(MASCOT_FALLBACK_IMG);
+    },
+    []
+  );
   useEffect(() => {
     if (!isExiting) { setGoodbyeFrame(0); return; }
     const t = setInterval(() => setGoodbyeFrame(f => f ^ 1), 420);
     return () => clearInterval(t);
   }, [isExiting]);
   const [showExitWarning, setShowExitWarning] = useState(false);
-  const [appState, setAppState] = useState<"dormant" | "opening" | "open">("dormant");
-  const hasOpenedRef = useRef(false);
+  const [appState, setAppState] = useState<"dormant" | "opening" | "open">(
+    startsEmbedded ? "open" : "dormant"
+  );
+  const hasOpenedRef = useRef(startsEmbedded);
   const [introText, setIntroText] = useState("");
   const [introDone, setIntroDone] = useState(false);
   const introFiredRef = useRef(false);
@@ -1356,11 +1377,13 @@ export default function App() {
               }}>
                 <div style={{ width: 160, height: 160, position: "relative" }}>
                   <img
-                    src={EMOTION_IMGS[idleEmotion]}
+                    src={imageSrc(EMOTION_IMGS[idleEmotion])}
                     alt="Slurm-O mascot"
+                    onError={handleMascotImageError}
                     style={{
                       width: "100%",
                       height: "100%",
+                      aspectRatio: "1 / 1",
                       objectFit: "contain",
                       imageRendering: "pixelated",
                     }}
@@ -1627,11 +1650,13 @@ export default function App() {
             transition: "filter 0.5s ease",
           }}>
             <img
-              src={isExiting ? GOODBYE_IMGS[goodbyeFrame] : EMOTION_IMGS[emotion]}
+              src={imageSrc(isExiting ? GOODBYE_IMGS[goodbyeFrame] : EMOTION_IMGS[emotion])}
               alt="Slurm-O mascot"
+              onError={handleMascotImageError}
               style={{
                 width: "100%",
                 height: "100%",
+                aspectRatio: "1 / 1",
                 objectFit: "contain",
                 imageRendering: "pixelated",
               }}

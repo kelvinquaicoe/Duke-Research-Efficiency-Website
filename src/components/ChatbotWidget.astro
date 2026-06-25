@@ -1,12 +1,14 @@
 ---
 const configuredChatbotUrl = (import.meta.env.PUBLIC_CHATBOT_URL || '').trim();
+const baseUrl = import.meta.env.BASE_URL || '/';
+const defaultChatbotUrl = configuredChatbotUrl || `${baseUrl}chatbot/`;
 ---
 
 <button
   id="chatbot-toggle"
   title="Chat with Slurm-O"
   aria-label="Open chatbot"
-  data-chatbot-url={configuredChatbotUrl}
+  data-chatbot-url={defaultChatbotUrl}
 >
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" aria-hidden="true">
     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
@@ -41,12 +43,7 @@ const configuredChatbotUrl = (import.meta.env.PUBLIC_CHATBOT_URL || '').trim();
   const confirmCloseBtn = document.getElementById('chatbot-confirm-close');
   const confirmCancelBtn = document.getElementById('chatbot-confirm-cancel');
 
-  const getDefaultChatbotUrl = () => {
-    const { origin } = window.location;
-    return `${origin}/chatbot/`;
-  };
-
-  const chatbotUrl = toggleBtn?.dataset?.chatbotUrl || getDefaultChatbotUrl();
+  const chatbotUrl = toggleBtn?.dataset?.chatbotUrl || '/chatbot/';
   frame.src = chatbotUrl;
 
   const openModal = () => {
@@ -103,6 +100,7 @@ const configuredChatbotUrl = (import.meta.env.PUBLIC_CHATBOT_URL || '').trim();
   let startY = 0;
   let startWidth = 400;
   let startHeight = 600;
+  const modalAspectRatio = 2 / 3;
 
   handle.addEventListener('mousedown', (event) => {
     if (event.button !== 0) return;
@@ -117,7 +115,7 @@ const configuredChatbotUrl = (import.meta.env.PUBLIC_CHATBOT_URL || '').trim();
   document.addEventListener('mousemove', (event) => {
     if (!isResizing) return;
     const width = Math.max(300, startWidth + (event.clientX - startX));
-    const height = Math.max(400, startHeight + (event.clientY - startY));
+    const height = Math.max(400, width / modalAspectRatio);
     modal.style.width = `${width}px`;
     modal.style.height = `${height}px`;
   });
@@ -157,6 +155,9 @@ const configuredChatbotUrl = (import.meta.env.PUBLIC_CHATBOT_URL || '').trim();
     right: 24px;
     width: 400px;
     height: 600px;
+    max-width: calc(100vw - 24px);
+    max-height: calc(100vh - 120px);
+    aspect-ratio: 2 / 3;
     background: #050810;
     border-radius: 12px;
     border: 2px solid rgba(0, 199, 255, 0.3);
@@ -287,8 +288,13 @@ const configuredChatbotUrl = (import.meta.env.PUBLIC_CHATBOT_URL || '').trim();
       right: 12px;
       left: 12px;
       width: auto;
-      height: min(70vh, 560px);
-      bottom: 76px;
+      bottom: 12px;
+      height: min(calc((100vw - 24px) * 1.5), calc(100vh - 24px));
+      max-height: calc(100vh - 24px);
+    }
+
+    #chatbot-resize-handle {
+      display: none;
     }
   }
 </style>

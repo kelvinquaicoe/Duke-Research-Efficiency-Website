@@ -1,0 +1,62 @@
+# CI/CD for the Research Efficiency site (reseff.cs.duke.edu)
+#
+#   build  — compile the Astro static site on an OIT shared runner -> dist/
+#   deploy — rsync dist/ to the host over SSH (main branch only)
+#
+# Required CI/CD variables (Settings -> CI/CD -> Variables), all "Protected":
+#   SSH_DEPLOY_KEY    (File)  private half of the deploy keypair
+#   SSH_KNOWN_HOSTS   (File)  `ssh-keyscan reseff.cs.duke.edu` output
+#   DEPLOY_USER              deploy
+#   DEPLOY_HOST             reseff.cs.duke.edu
+#   DEPLOY_PATH            /var/www/html
+
+workflow:
+  rules:
+    # MR pipelines (validate the build before merge) ...
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    # ... and pushes to the default branch (build + deploy).
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+
+stages:
+  - build
+  - deploy
+
+build:
+  stage: build
+  image: node:22-bookworm-slim
+  interruptible: true
+  cache:
+    key:
+      files:
+        - package-lock.json
+    paths:
+      - .npm/
+  before_script:
+    - npm ci --cache .npm --prefer-offline
+  script:
+    - npm run build
+  artifacts:
+    paths:
+      - dist/
+    expire_in: 1 day
+
+deploy:
+  stage: deploy
+  image: debian:bookworm-slim
+  needs:
+    - build
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+  environment:
+    name: production
+    url: https://reseff.cs.duke.edu
+  before_script:
+    - apt-get update -qq && apt-get install -y -qq openssh-client rsync > /dev/null
+    - install -m 700 -d ~/.ssh
+    - install -m 600 "$SSH_DEPLOY_KEY" ~/.ssh/id_ed25519
+    - install -m 644 "$SSH_KNOWN_HOSTS" ~/.ssh/known_hosts
+  script:
+    - >
+      rsync -a --delete --no-owner --no-group --chmod=D755,F644
+      -e "ssh -i ~/.ssh/id_ed25519"
+      dist/ "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/"

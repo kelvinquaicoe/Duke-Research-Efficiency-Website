@@ -1,0 +1,31 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Research Efficiency">
+  <main>
+    <h1>Research Efficiency</h1>
+    <p>Starter site is live and deploying from GitLab CI/CD.</p>
+    <p class="hint">Replace this page under <code>src/pages/</code> with the real content.</p>
+  </main>
+</Layout>
+
+<style>
+  main {
+    text-align: center;
+    padding: 2rem;
+    max-width: 40rem;
+  }
+  h1 {
+    margin: 0 0 0.5rem;
+    font-size: clamp(2rem, 6vw, 3.5rem);
+    color: var(--accent);
+  }
+  p { margin: 0.25rem 0; line-height: 1.6; }
+  .hint { opacity: 0.7; font-size: 0.95rem; }
+  code {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 0.1rem 0.35rem;
+    border-radius: 0.25rem;
+  }
+</style>

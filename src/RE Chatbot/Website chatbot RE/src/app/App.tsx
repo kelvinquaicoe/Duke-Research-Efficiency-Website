@@ -1038,6 +1038,46 @@ function generateResponse(detectedEmotion: Emotion): string {
   return pool[Math.floor(Math.random() * pool.length)];
 }
 
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value));
+}
+
+function parseClusterLoad(brief: string): number | null {
+  const match = brief.match(/(\d{1,3})%/);
+  if (!match) return null;
+  return clamp(Number(match[1]), 0, 100);
+}
+
+function getClusterGreeting(load: number) {
+  if (load >= 0.85) {
+    return "Cluster load is high. I’m Slurm-0 — want help finding a smarter job path?";
+  }
+
+  if (load >= 0.55) {
+    return "Cluster is active.\nI’m Slurm-0 — ask me about jobs, GPUs, queues, or resources.";
+  }
+
+  return "Cluster is calm. I’m Slurm-0, Cluster_Cmd mascot & AI assistant. What can I help you with?";
+}
+
+function buildGreeting(load: number | null, brief: string): string {
+  const normalizedLoad = load === null ? 0.42 : clamp(load / 100, 0, 1);
+  return getClusterGreeting(normalizedLoad);
+}
+
+function buildHelperText(load: number | null, brief: string): string {
+  if (load === null) {
+    return "Ask about clusters, jobs, GPUs, queues, or anything else.";
+  }
+  if (load >= 85) {
+    return "Cluster is busy — try a focused job, GPU, or queue question.";
+  }
+  if (load >= 55) {
+    return "Ask about clusters, jobs, GPUs, queues, or anything else.";
+  }
+  return "Ask about clusters, jobs, GPUs, queues, or anything else.";
+}
+
 // ─── Main App ─────────────────────────────────────────────────────────────────
 
 const EXIT_STYLES = `
@@ -1091,6 +1131,69 @@ const EXIT_STYLES = `
     from { opacity: 0; transform: translateY(7px); }
     to   { opacity: 1; transform: translateY(0px); }
   }
+  @keyframes slurm-halo-breathe {
+    0%, 100% { opacity: 0.62; transform: translate(-50%, -52%) scale(0.98); }
+    50%      { opacity: 0.82; transform: translate(-50%, -52%) scale(1.03); }
+  }
+  @keyframes slurm-halo-typing {
+    0%, 100% { opacity: 0.74; transform: translate(-50%, -52%) scale(0.99); }
+    50%      { opacity: 0.98; transform: translate(-50%, -52%) scale(1.04); }
+  }
+  @keyframes slurm-core-breathe {
+    0%, 100% { opacity: 0.76; transform: translate(-50%, -50%) scale(0.99); }
+    50%      { opacity: 0.9; transform: translate(-50%, -50%) scale(1.02); }
+  }
+  @keyframes slurm-core-typing {
+    0%, 100% { opacity: 0.88; transform: translate(-50%, -50%) scale(1); }
+    50%      { opacity: 1; transform: translate(-50%, -50%) scale(1.035); }
+  }
+  @keyframes slurm-greeting-pulse {
+    0%, 100% {
+      text-shadow:
+        0 0 8px rgba(0, 199, 255, 0.48),
+        0 0 18px rgba(0, 199, 255, 0.18);
+      opacity: 0.86;
+      transform: translateY(0px) scale(1);
+    }
+    50% {
+      text-shadow:
+        0 0 10px rgba(0, 199, 255, 0.6),
+        0 0 24px rgba(0, 199, 255, 0.28);
+      opacity: 1;
+      transform: translateY(-1px) scale(1.01);
+    }
+  }
+  @keyframes slurmGreetingBreath {
+    0%, 100% {
+      opacity: 0.82;
+      text-shadow: 0 0 8px rgba(0,199,255,0.45);
+    }
+    50% {
+      opacity: 1;
+      text-shadow: 0 0 14px rgba(0,199,255,0.75);
+    }
+  }
+  .slurm-greeting-breath {
+    animation: slurmGreetingBreath 3.4s ease-in-out infinite;
+  }
+  .slurm-helper-text {
+    margin-top: 10px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.12em;
+    color: rgba(182, 238, 255, 0.46);
+    text-transform: uppercase;
+    text-align: center;
+    width: 100%;
+  }
+  @keyframes slurm-send-burst {
+    0%   { transform: translateY(-50%) scale(1); }
+    45%  { transform: translateY(-50%) scale(0.88); }
+    100% { transform: translateY(-50%) scale(1); }
+  }
+  @keyframes slurm-cursor-blink {
+    50% { opacity: 0; }
+  }
   @keyframes nc-blink {
     0%, 100% { opacity: 1; } 50% { opacity: 0; }
   }
@@ -1121,6 +1224,24 @@ export default function App() {
   const [avatarCenter, setAvatarCenter] = useState({ x: 0, y: 0 });
   const [isExiting, setIsExiting] = useState(false);
   const [goodbyeFrame, setGoodbyeFrame] = useState(0);
+  const [clusterBrief, setClusterBrief] = useState("Loading cluster status...");
+  const [clusterLoad, setClusterLoad] = useState<number | null>(null);
+  const greetingText = buildGreeting(clusterLoad, clusterBrief);
+  const helperText = buildHelperText(clusterLoad, clusterBrief);
+  const [typingSpeed, setTypingSpeed] = useState(0);
+  const [sendPulse, setSendPulse] = useState(false);
+
+  const openCuePlayedRef = useRef(false);
+  const lastTypeTimeRef = useRef(Date.now());
+  const focusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const playSoundCue = useCallback((kind: "open" | "send" | "tick") => {
+    if (typeof window === "undefined") return;
+
+    const audio = new Audio(`/sounds/${kind}.mp3`);
+    audio.volume = kind === "tick" ? 0.04 : 0.12;
+    void audio.play().catch(() => {});
+  }, []);
 
   const handleMascotImageError = useCallback(
     (event: React.SyntheticEvent<HTMLImageElement>) => {
@@ -1193,16 +1314,45 @@ export default function App() {
   }, [messages]);
 
   useEffect(() => {
-    if (appState === "open") {
-      inputRef.current?.focus();
-    }
-  }, [appState, messages]);
+    if (appState !== "open") return;
+    let active = true;
+
+    fetch("/api/cluster-brief")
+      .then((res) => (res.ok ? res.json() : Promise.reject(new Error("bad response"))))
+      .then((data: { brief?: string }) => {
+        if (!active) return;
+        const brief = typeof data.brief === "string" ? data.brief : "";
+        setClusterBrief(brief || "Ask about jobs, GPUs, queue status, or anything else.");
+        setClusterLoad(parseClusterLoad(brief));
+      })
+      .catch(() => {
+        if (!active) return;
+        setClusterBrief("Ask about jobs, GPUs, queue status, or anything else.");
+        setClusterLoad(null);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [appState]);
 
   useEffect(() => {
-    if (appState === "open" && !isSubmitted) {
-      inputRef.current?.focus();
+    if (appState !== "open") return;
+    if (!openCuePlayedRef.current) {
+      openCuePlayedRef.current = true;
+      void playSoundCue("open");
     }
-  }, [appState, isSubmitted]);
+  }, [appState, playSoundCue]);
+
+  useEffect(() => {
+    if (appState !== "open") return;
+
+    const t = setTimeout(() => {
+      inputRef.current?.focus({ preventScroll: true });
+    }, 900);
+
+    return () => clearTimeout(t);
+  }, [appState]);
 
   useEffect(() => {
     if (appState !== "open" || bootSequenceStartedRef.current) return;
@@ -1268,15 +1418,21 @@ export default function App() {
   useEffect(() => {
     if (appState !== "open" || bootPhase < 4 || introFiredRef.current) return;
     introFiredRef.current = true;
-    const msg = "Hello, I'm Slurm-0, Cluster_Cmd, Mascot & AI assistant! What can I help you with?";
+    const msg = greetingText;
     let i = 0;
     const tick = setInterval(() => {
       i++;
       setIntroText(msg.slice(0, i));
-      if (i >= msg.length) { clearInterval(tick); setIntroDone(true); }
-    }, 32);
+      if (i % 3 === 0) {
+        void playSoundCue("tick");
+      }
+      if (i >= msg.length) {
+        clearInterval(tick);
+        setIntroDone(true);
+      }
+    }, 8);
     return () => clearInterval(tick);
-  }, [appState, bootPhase]);
+  }, [appState, bootPhase, greetingText, playSoundCue]);
 
   const detectedEmotion = detectEmotion(
     input,
@@ -1310,17 +1466,26 @@ export default function App() {
   const recentMessages = messages.slice(-2);
   const isRevealed = hasConversation || bootPhase >= 3;
   const showGreeting = Boolean(introText) && bootPhase >= 4 && !hasConversation;
+  const isGreetingTyping = showGreeting && !introDone;
   const avatarSize = hasConversation ? 192 : 260;
+  const haloSize = Math.round(avatarSize * 2.05);
+  const coreSize = Math.round(avatarSize * 1.08);
   const avatarRevealOpacity = hasConversation ? 1 : bootPhase >= 4 ? 1 : bootPhase >= 3 ? 0.42 : 0;
   const mascotRevealOpacity = hasConversation ? 1 : bootPhase >= 4 ? 1 : bootPhase >= 3 ? 0.56 : 0;
   const inputRevealOpacity = hasConversation ? 0.96 : bootPhase >= 4 ? 0.95 : 0;
-
   const handleInputChange = useCallback(
     (e: ChangeEvent<HTMLTextAreaElement>) => {
       const nextValue = e.target.value;
+      const now = Date.now();
+      const delta = now - lastTypeTimeRef.current;
+      lastTypeTimeRef.current = now;
+
+      const speed = Math.max(0, Math.min(1, 1 - delta / 450));
+
       setInput(nextValue);
       setHasResponse(false);
       setHasError(false);
+      setTypingSpeed(nextValue.trim() ? speed : 0);
 
       if (typingTimerRef.current) {
         clearTimeout(typingTimerRef.current);
@@ -1345,6 +1510,11 @@ export default function App() {
     const trimmed = input.trim();
     if (!trimmed) return;
 
+    void playSoundCue("send");
+    setSendPulse(true);
+    setTypingSpeed(0);
+    lastTypeTimeRef.current = Date.now();
+
     const submittedEmotion = detectEmotion(trimmed, false, false, false, false);
 
     setMessages((prev) => [
@@ -1353,7 +1523,6 @@ export default function App() {
     ]);
     setInput("");
     setIsTyping(false);
-    requestAnimationFrame(() => inputRef.current?.focus());
     setIsSubmitted(true);
     setIsReplyTyping(false);
     setHasResponse(false);
@@ -1426,7 +1595,7 @@ export default function App() {
         }
       }, 32);
     }, 2200);
-  }, [input]);
+  }, [input, playSoundCue]);
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -1456,10 +1625,17 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    if (!sendPulse) return;
+    const timer = setTimeout(() => setSendPulse(false), 180);
+    return () => clearTimeout(timer);
+  }, [sendPulse]);
+
+  useEffect(() => {
     return () => {
       if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
       if (thinkingTimerRef.current) clearTimeout(thinkingTimerRef.current);
       if (responseTypingTimerRef.current) clearInterval(responseTypingTimerRef.current);
+      if (focusTimerRef.current) clearTimeout(focusTimerRef.current);
     };
   }, []);
 
@@ -1706,13 +1882,42 @@ export default function App() {
           }}
 
         >
-          {/* Outer ambient glow */}
+          {/* Large halo behind the mascot */}
           <div
-            className="absolute inset-0 rounded-full"
             style={{
-              background: `radial-gradient(circle, ${config.glowColor} 0%, transparent 70%)`,
-              transform: "scale(1.4)",
-              transition: "background 0.8s ease",
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              width: haloSize,
+              height: haloSize,
+              borderRadius: "50%",
+              background: `radial-gradient(circle, ${config.glowColor} 0%, ${config.glowSecondary} 34%, transparent 72%)`,
+              filter: "blur(28px)",
+              mixBlendMode: "screen",
+              opacity: isGreetingTyping ? 0.9 : 0.66,
+              animation: isGreetingTyping
+                ? "slurm-halo-typing 2.8s ease-in-out infinite"
+                : "slurm-halo-breathe 4.8s ease-in-out infinite",
+              transition: "background 0.8s ease, opacity 0.4s ease, filter 0.4s ease",
+            }}
+          />
+          {/* Small aura around the image */}
+          <div
+            style={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              width: coreSize,
+              height: coreSize,
+              borderRadius: "50%",
+              background: `radial-gradient(circle, ${config.glowColor} 0%, ${config.glowSecondary} 45%, transparent 74%)`,
+              filter: "blur(12px)",
+              mixBlendMode: "screen",
+              opacity: isGreetingTyping ? 1 : 0.84,
+              animation: isGreetingTyping
+                ? "slurm-core-typing 1.9s ease-in-out infinite"
+                : "slurm-core-breathe 3.4s ease-in-out infinite",
+              transition: "background 0.8s ease, opacity 0.4s ease, filter 0.4s ease",
             }}
           />
           {/* Pixel bot mascot */}
@@ -1720,15 +1925,15 @@ export default function App() {
             position: "relative",
             width: "100%",
             height: "100%",
-            zIndex: 1,
+            zIndex: 2,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             filter: isExiting
               ? `drop-shadow(0 0 12px #ffd60a) drop-shadow(0 0 24px #ffd60a80)`
               : emotion !== "neutral"
-              ? `drop-shadow(0 0 10px ${config.orbitColor}) drop-shadow(0 0 20px ${config.orbitColor}80)`
-              : "drop-shadow(0 0 6px rgba(0,180,216,0.4))",
+              ? `drop-shadow(0 0 7px ${config.orbitColor}) drop-shadow(0 0 16px ${config.orbitColor}55)`
+              : "drop-shadow(0 0 5px rgba(0,180,216,0.26)) drop-shadow(0 0 12px rgba(0,180,216,0.14))",
             transition: "filter 0.5s ease, transform 320ms ease, opacity 0.6s ease",
             transform: hasConversation ? "scale(0.92)" : "scale(1)",
             transformOrigin: "center",
@@ -1774,23 +1979,43 @@ export default function App() {
 
       {/* Intro text — typewriter */}
       {showGreeting && (
-        <p
-          className="z-10 text-center px-8"
-          style={{
-            marginTop: 18,
-            fontFamily: "'JetBrains Mono', monospace",
-            fontSize: "0.82rem",
-            color: config.orbitColor,
-            opacity: 0.82,
-            letterSpacing: "0.01em",
-            transition: "color 0.6s ease, opacity 240ms ease, transform 240ms ease",
-            animation: "nc-intro-in 0.4s ease-out forwards",
-            maxWidth: 480,
-            filter: "drop-shadow(0 0 8px rgba(0,0,0,0.35))",
-          }}
-        >
-          {introText}
-        </p>
+        <div className="z-10 text-center px-8 slurm-greeting-breath">
+          <p
+            style={{
+              marginTop: 18,
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: "0.82rem",
+              color: config.orbitColor,
+              opacity: isGreetingTyping ? 0.92 : 0.82,
+              letterSpacing: "0.01em",
+              transition: "color 0.6s ease, opacity 240ms ease, transform 240ms ease, text-shadow 240ms ease",
+              animation: isGreetingTyping
+                ? "nc-intro-in 0.4s ease-out forwards, slurm-greeting-pulse 2.4s ease-in-out infinite"
+                : "nc-intro-in 0.4s ease-out forwards",
+              maxWidth: 480,
+              whiteSpace: "pre-line",
+              textAlign: "center",
+              textShadow: isGreetingTyping
+                ? "0 0 8px rgba(0, 199, 255, 0.48), 0 0 18px rgba(0, 199, 255, 0.18)"
+                : "0 0 6px rgba(0, 199, 255, 0.28), 0 0 12px rgba(0, 199, 255, 0.12)",
+              filter: "drop-shadow(0 0 8px rgba(0,0,0,0.35))",
+            }}
+          >
+            {introText}
+            {!introDone && (
+              <span
+                style={{
+                  marginLeft: 3,
+                  animation: "slurm-cursor-blink 0.8s steps(1) infinite",
+                  opacity: 0.9,
+                }}
+              >
+                █
+              </span>
+            )}
+          </p>
+          <p className="slurm-helper-text">{helperText}</p>
+        </div>
       )}
 
       {/* Messages */}
@@ -1859,12 +2084,12 @@ export default function App() {
 
       {/* Input area */}
       <div
-      className="w-full max-w-2xl px-6 pb-8 z-20"
+      className="w-full px-6 pb-8 z-20"
       style={{
         flexShrink: 0,
         marginTop: "auto",
-        width: "100%",
-        maxWidth: 768,
+        width: "min(90vw, 1536px)",
+        maxWidth: "none",
         opacity: inputRevealOpacity,
         pointerEvents: isRevealed ? "auto" : "none",
         transition: "opacity 720ms ease-out 120ms, filter 720ms ease-out 120ms",
@@ -1875,10 +2100,10 @@ export default function App() {
 
         {/* Input field */}
         <div
-          className="relative flex items-stretch gap-3 px-5 py-4"
+          className="relative px-5 py-4"
           style={{
-            background: "rgba(6,10,20,0.92)",
-            backgroundColor: "rgba(6,10,20,0.92)",
+            background: "rgba(6,10,20,0.78)",
+            backgroundColor: "rgba(6,10,20,0.78)",
             border: `2px solid ${
               emotion === "angry"
                 ? "rgba(255,20,60,0.7)"
@@ -1897,10 +2122,24 @@ export default function App() {
             minWidth: "100%",
             minHeight: 72,
             width: "100%",
+            maxWidth: "none",
             boxSizing: "border-box",
+            overflow: "hidden",
           }}
         >
           {/* Pixel corner accents */}
+          <div
+            aria-hidden="true"
+            style={{
+              position: "absolute",
+              inset: 0,
+              zIndex: 0,
+              pointerEvents: "none",
+              background: `linear-gradient(135deg, ${config.glowColor}26 0%, transparent 42%), radial-gradient(circle at 18% 22%, ${config.orbitColor}22 0%, transparent 58%), radial-gradient(circle at 82% 18%, ${config.orbitColor}14 0%, transparent 45%)`,
+              opacity: isTyping ? 0.3 : 0.16,
+              mixBlendMode: "screen",
+            }}
+          />
           <span style={{ position: "absolute", top: -3, left: -3, width: 6, height: 6, background: config.orbitColor, transition: "background 0.5s ease" }} />
           <span style={{ position: "absolute", top: -3, right: -3, width: 6, height: 6, background: config.orbitColor, transition: "background 0.5s ease" }} />
           <span style={{ position: "absolute", bottom: -3, left: -3, width: 6, height: 6, background: config.orbitColor, transition: "background 0.5s ease" }} />
@@ -1914,43 +2153,51 @@ export default function App() {
             aria-label="Ask Slurm-0"
             rows={1}
             disabled={isSubmitted || isReplyTyping}
-            className="flex-1 bg-transparent outline-none resize-none appearance-none"
+            className="bg-transparent outline-none resize-none appearance-none"
             style={{
+              position: "absolute",
+              inset: 0,
+              display: "block",
+              zIndex: 1,
+              width: "100%",
+              height: "100%",
+              boxSizing: "border-box",
               color: "#e2e8f8",
               backgroundColor: "transparent",
+              WebkitAppearance: "none",
+              MozAppearance: "none",
               caretColor: config.orbitColor,
               fontFamily: "'JetBrains Mono', monospace",
               fontSize: "0.72rem",
               letterSpacing: "0.04em",
               lineHeight: 1.4,
-              minHeight: "100%",
-              height: "100%",
-              width: "100%",
               border: "none",
-              boxShadow: "none",
-              paddingTop: 0,
-              paddingBottom: 0,
-              paddingLeft: 0,
-              paddingRight: 0,
+              boxShadow: isTyping
+                ? `5px 5px 0 0 ${config.orbitColor}55, 0 0 ${12 + typingSpeed * 22}px ${config.orbitColor}66`
+                : `5px 5px 0 0 ${config.orbitColor}22`,
               margin: 0,
+              padding: "18px 68px 18px 18px",
               overflowY: "hidden",
-              alignSelf: "stretch",
               opacity: isSubmitted || isReplyTyping ? 0.75 : 1,
-              transition: "opacity 240ms ease",
+              transition: "opacity 240ms ease, box-shadow 240ms ease",
             }}
           />
 
 
           {/* Send button — pixel square, theme-colored */}
           <button
-          onClick={handleSubmit}
-          disabled={!input.trim() || isSubmitted || isReplyTyping}
-          aria-label="Send message"
-          className="flex-shrink-0 self-end transition-all duration-300 disabled:opacity-25 disabled:cursor-not-allowed active:scale-90"
-          style={{
-            width: 46,
-            height: 46,
-
+            onClick={handleSubmit}
+            disabled={!input.trim() || isSubmitted || isReplyTyping}
+            aria-label="Send message"
+            className="transition-all duration-300 disabled:opacity-25 disabled:cursor-not-allowed"
+            style={{
+              position: "absolute",
+              right: 18,
+              top: "50%",
+              transform: sendPulse ? "translateY(-50%) scale(0.88)" : "translateY(-50%) scale(1)",
+              width: 46,
+              height: 46,
+              zIndex: 2,
               borderRadius: 0,
               border: `2px solid ${config.orbitColor}`,
               background: input.trim() && !isSubmitted
@@ -1962,6 +2209,8 @@ export default function App() {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
+              filter: sendPulse ? `brightness(1.8) drop-shadow(0 0 10px ${config.orbitColor})` : "none",
+              transition: "transform 120ms ease, filter 120ms ease",
             }}
           >
             {isSubmitted ? (

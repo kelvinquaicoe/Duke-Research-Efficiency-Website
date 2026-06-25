@@ -85,6 +85,17 @@ const configuredChatbotUrl = (import.meta.env.PUBLIC_CHATBOT_URL || '').trim();
     }
   });
 
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape') return;
+    if (!confirm.hidden) {
+      confirm.hidden = true;
+      return;
+    }
+    if (!modal.hidden) {
+      closeModal();
+    }
+  });
+
   // Resize handle behavior for the bottom-right corner.
   const handle = document.createElement('div');
   handle.id = 'chatbot-resize-handle';
@@ -157,6 +168,11 @@ const configuredChatbotUrl = (import.meta.env.PUBLIC_CHATBOT_URL || '').trim();
     display: flex;
     flex-direction: column;
     overflow: hidden;
+  }
+
+  #chatbot-modal[hidden],
+  #chatbot-confirm[hidden] {
+    display: none !important;
   }
 
   #chatbot-header {

@@ -208,7 +208,6 @@ function detectEmotion(
   hasResponse: boolean,
   hasError: boolean
 ): Emotion {
-  if (hasError) return "angry";
   if (hasResponse) return "excited";
   if (isSubmitted) return "thinking";
 
@@ -928,6 +927,7 @@ function EmotionDot({ emotion, label, style }: { emotion: Emotion; label: string
           color: config.orbitColor,
           letterSpacing: "0.15em",
           textTransform: "uppercase",
+          transition: "color 0.6s ease",
           ...style,
         }}
       >
@@ -1063,9 +1063,9 @@ const EXIT_STYLES = `
     100% { transform: scale(1) rotate(0deg);      opacity: 1;   filter: brightness(1); }
   }
   @keyframes nc-open-page {
-    0%   { opacity: 0; filter: blur(16px); }
-    35%  { opacity: 0; filter: blur(10px); }
-    65%  { opacity: 0.5; filter: blur(3px); }
+    0%   { opacity: 0; filter: blur(12px); }
+    15%  { opacity: 0.08; filter: blur(8px); }
+    55%  { opacity: 0.6; filter: blur(2px); }
     100% { opacity: 1; filter: blur(0px); }
   }
   @keyframes nc-dormant-pulse {
@@ -1286,9 +1286,7 @@ export default function App() {
     hasError
   );
 
-  const emotion = hasError
-    ? "angry"
-    : isSubmitted || isReplyTyping
+  const emotion = isSubmitted || isReplyTyping
     ? "thinking"
     : hasResponse
     ? "excited"
@@ -1726,9 +1724,6 @@ export default function App() {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            background: "rgba(255,255,255,0.02)",
-            border: "1px solid rgba(255,255,255,0.08)",
-            borderRadius: 28,
             filter: isExiting
               ? `drop-shadow(0 0 12px #ffd60a) drop-shadow(0 0 24px #ffd60a80)`
               : emotion !== "neutral"
@@ -1906,10 +1901,10 @@ export default function App() {
           }}
         >
           {/* Pixel corner accents */}
-          <span style={{ position: "absolute", top: -3, left: -3, width: 6, height: 6, background: config.orbitColor }} />
-          <span style={{ position: "absolute", top: -3, right: -3, width: 6, height: 6, background: config.orbitColor }} />
-          <span style={{ position: "absolute", bottom: -3, left: -3, width: 6, height: 6, background: config.orbitColor }} />
-          <span style={{ position: "absolute", bottom: -3, right: -3, width: 6, height: 6, background: config.orbitColor }} />
+          <span style={{ position: "absolute", top: -3, left: -3, width: 6, height: 6, background: config.orbitColor, transition: "background 0.5s ease" }} />
+          <span style={{ position: "absolute", top: -3, right: -3, width: 6, height: 6, background: config.orbitColor, transition: "background 0.5s ease" }} />
+          <span style={{ position: "absolute", bottom: -3, left: -3, width: 6, height: 6, background: config.orbitColor, transition: "background 0.5s ease" }} />
+          <span style={{ position: "absolute", bottom: -3, right: -3, width: 6, height: 6, background: config.orbitColor, transition: "background 0.5s ease" }} />
           <textarea
             ref={inputRef}
             value={input}

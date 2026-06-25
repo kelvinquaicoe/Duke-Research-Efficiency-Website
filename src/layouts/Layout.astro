@@ -1,6 +1,6 @@
 ---
 import SiteHeader from '../components/SiteHeader.astro';
-import ChatbotWidget from '../components/ChatbotWidget.jsx';
+import ChatbotWidget from '../components/ChatbotWidget.astro';
 ---
 
 <!doctype html>
@@ -20,7 +20,7 @@ import ChatbotWidget from '../components/ChatbotWidget.jsx';
 	</head>
 	<body>
 		<slot />
-		<ChatbotWidget client:load />
+		<ChatbotWidget />
 	</body>
 </html>
 

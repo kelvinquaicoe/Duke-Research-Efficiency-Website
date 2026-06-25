@@ -68,11 +68,11 @@ export default function ChatbotWidget() {
             <h3
               style={{
                 margin: 0,
-                fontFamily: "'Minecraft', monospace",
+                fontFamily: '"Orbitron", sans-serif',
                 color: '#e2e8f8',
                 fontSize: '14px',
-                fontWeight: 600,
-                letterSpacing: '0.04em',
+                fontWeight: 700,
+                letterSpacing: '0.08em',
               }}
             >
               Slurm<span style={{ color: '#00c7ff' }}>-O</span> AI

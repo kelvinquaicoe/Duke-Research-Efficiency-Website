@@ -42,10 +42,7 @@ const configuredChatbotUrl = (import.meta.env.PUBLIC_CHATBOT_URL || '').trim();
   const confirmCancelBtn = document.getElementById('chatbot-confirm-cancel');
 
   const getDefaultChatbotUrl = () => {
-    const { hostname, origin } = window.location;
-    if (hostname === 'localhost' || hostname === '127.0.0.1') {
-      return 'http://localhost:5000/';
-    }
+    const { origin } = window.location;
     return `${origin}/chatbot/`;
   };
 

@@ -1,10 +1,13 @@
 ---
 const { context = "home" } = Astro.props;
 const onHome = context === "home";
+const baseUrl = import.meta.env.BASE_URL || "/";
 
-const heroHref = onHome ? "#hero" : "/#hero";
-const leaderHref = onHome ? "#leader-section" : "/#leader-section";
-const loserHref = onHome ? "#loser-section" : "/#loser-section";
+const heroHref = onHome ? "#hero" : `${baseUrl}#hero`;
+const leaderHref = onHome ? "#leader-section" : `${baseUrl}#leader-section`;
+const loserHref = onHome ? "#loser-section" : `${baseUrl}#loser-section`;
+const gameHref = `${baseUrl}game`;
+const usersHref = `${baseUrl}users`;
 ---
 
 <header class="site-header">
@@ -19,10 +22,14 @@ const loserHref = onHome ? "#loser-section" : "/#loser-section";
     </div>
   </a>
   <nav class="header-nav" aria-label="Primary">
-    <a href="/game">Game</a>
-    <a class="leader-link" href={leaderHref}>Leader Board</a>
-    <a class="loser-link" href={loserHref}>Loser Board</a>
-    <a href="/users">Users</a>
+
+
+
+
+    <a href={gameHref}>GAME</a>
+    <a class="leader-link" href={leaderHref}>LEADER BOARD</a>
+    <a class="loser-link" href={loserHref}>LOSER BOARD</a>
+    <a href={usersHref}>USERS</a>
   </nav>
 </header>
 

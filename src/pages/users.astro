@@ -1,6 +1,26 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import SiteHeader from '../components/SiteHeader.astro';
+
+type GpuUser = {
+  user: string;
+  avgUtilPct: number | null;
+  gpuHoursAlloc: number | null;
+  gpuHoursEffective: number | null;
+  gpuHoursWasted?: number | null;
+};
+
+type GpuMetricsResponse =
+  | {
+      ok: true;
+      fetchedAt: string;
+      allUsers: GpuUser[];
+    }
+  | {
+      ok: false;
+      error: string;
+    };
+
 ---
 
 <Layout>
@@ -11,27 +31,29 @@ import SiteHeader from '../components/SiteHeader.astro';
 
       <!-- SECTION HEADER -->
       <div class="section-header">
-        <div>
-          <h2>User Roster</h2>
-          <p class="section-description">Search and filter all users by efficiency, GPU hours, and score. Click any row to expand their profile.</p>
+        <div class="section-header-top">
+          <div>
+            <h2>User Roster</h2>
+            <p class="section-description">Search and filter all users by efficiency, GPU hours, effective GPU hours, game bonus, and status. Click any row to expand their profile.</p>
+          </div>
+          <span class="live-badge gold">Live Roster</span>
         </div>
-        <span class="live-badge gold">Live Roster</span>
-      </div>
 
-      <!-- CONTROLS -->
-      <div class="controls">
-        <div class="search-wrap">
-          <span class="search-icon">⌕</span>
-          <input class="search-input" id="search" placeholder="Search users..." />
+        <!-- CONTROLS -->
+        <div class="controls">
+          <div class="search-wrap">
+            <span class="search-icon">⌕</span>
+            <input class="search-input" id="search" placeholder="Search users..." />
+          </div>
+          <select class="sort-select" id="sort">
+            <option value="eff-desc">Efficiency: High → Low</option>
+            <option value="eff-asc">Efficiency: Low → High</option>
+            <option value="gpu-desc">GPU Hours: High → Low</option>
+            <option value="effhrs-desc">Wasted Hrs: High → Low</option>
+            <option value="name-asc">User: A → Z</option>
+          </select>
+          <span class="count-text" id="count">—</span>
         </div>
-        <select class="sort-select" id="sort">
-          <option value="eff-desc">Efficiency: High → Low</option>
-          <option value="eff-asc">Efficiency: Low → High</option>
-          <option value="gpu-desc">GPU Hours: High → Low</option>
-          <option value="score-desc">Score: High → Low</option>
-          <option value="name-asc">Name: A → Z</option>
-        </select>
-        <span class="count-text" id="count">20 of 20 users</span>
       </div>
 
       <!-- PROFILE PANEL -->
@@ -47,29 +69,34 @@ import SiteHeader from '../components/SiteHeader.astro';
           <div class="pp-stat">
             <div class="pp-stat-lbl">Efficiency</div>
             <div class="pp-stat-val" id="pp-eff">—</div>
-            <div class="pp-stat-sub">vs 68% cluster avg</div>
+            <div class="pp-stat-sub">avg GPU utilization</div>
           </div>
           <div class="pp-stat">
-            <div class="pp-stat-lbl">GPU Hrs Saved</div>
+            <div class="pp-stat-lbl">GPU Hrs</div>
             <div class="pp-stat-val" id="pp-gpu">—</div>
-            <div class="pp-stat-sub">this month</div>
+            <div class="pp-stat-sub">allocated</div>
           </div>
           <div class="pp-stat">
             <div class="pp-stat-lbl">Game Bonus</div>
             <div class="pp-stat-val" id="pp-game">—</div>
-            <div class="pp-stat-sub">pts from gameplay</div>
+            <div class="pp-stat-sub">earned bonus points</div>
           </div>
           <div class="pp-stat">
-            <div class="pp-stat-lbl">Total Score</div>
+            <div class="pp-stat-lbl">Wasted</div>
             <div class="pp-stat-val" id="pp-score">—</div>
-            <div class="pp-stat-sub" id="pp-tier">—</div>
+            <div class="pp-stat-sub">alloc − effective</div>
           </div>
         </div>
         <div class="pp-footer">
-          <span class="pp-active-text">Last active: <strong id="pp-last">—</strong></span>
+          <span class="pp-active-text">Data as of: <strong id="pp-last">—</strong></span>
           <button class="pp-btn">VIEW FULL PROFILE →</button>
         </div>
       </div>
+
+      <section class="gpu-leaderboard-section">
+        <h3>GPU Cluster Leaderboard</h3>
+        <div id="gpu-metrics-root"></div>
+      </section>
 
       <!-- TABLE -->
       <div class="table-wrap">
@@ -77,11 +104,11 @@ import SiteHeader from '../components/SiteHeader.astro';
           <thead>
             <tr>
               <th>#</th>
-              <th class="th-left">Name</th>
+              <th class="th-left">User</th>
               <th>Efficiency</th>
               <th>GPU Hrs</th>
+              <th>Wasted Hrs</th>
               <th>Game Bonus</th>
-              <th>Total Score</th>
               <th>Status</th>
             </tr>
           </thead>
@@ -89,44 +116,20 @@ import SiteHeader from '../components/SiteHeader.astro';
         </table>
       </div>
 
+
     </section>
   </main>
 </Layout>
 
 <script>
-const users = [
-  {rank:1,  name:'Hiii Florine',          eff:95, gpu:95,  game:850,  score:5600, tier:'blazing',  active:'2 hrs ago'},
-  {rank:2,  name:'tallest Flo',           eff:92, gpu:92,  game:500,  score:5100, tier:'blazing',  active:'4 hrs ago'},
-  {rank:3,  name:'Quantum Quinton',       eff:90, gpu:88,  game:1100, score:5300, tier:'blazing',  active:'1 hr ago'},
-  {rank:4,  name:'Best Volleybal Player', eff:88, gpu:95,  game:300,  score:4800, tier:'cruising', active:'6 hrs ago'},
-  {rank:5,  name:'Data Dana',             eff:88, gpu:86,  game:950,  score:4850, tier:'cruising', active:'3 hrs ago'},
-  {rank:6,  name:'Algorithm Aiden',       eff:86, gpu:84,  game:200,  score:4200, tier:'cruising', active:'12 hrs ago'},
-  {rank:7,  name:'Pipeline Priya',        eff:84, gpu:82,  game:600,  score:4100, tier:'cruising', active:'1 day ago'},
-  {rank:8,  name:'Kernel Ken',            eff:82, gpu:80,  game:400,  score:3900, tier:'cruising', active:'2 days ago'},
-  {rank:9,  name:'Tensor Tessa',          eff:80, gpu:78,  game:100,  score:3500, tier:'cruising', active:'2 days ago'},
-  {rank:10, name:'Vector Vance',          eff:78, gpu:76,  game:0,    score:3200, tier:'cruising', active:'3 days ago'},
-  {rank:11, name:'Aaron',                 eff:70, gpu:68,  game:0,    score:2800, tier:'active',   active:'5 hrs ago'},
-  {rank:12, name:'Laggy Lana',            eff:70, gpu:68,  game:0,    score:2800, tier:'active',   active:'1 day ago'},
-  {rank:13, name:'Ian',                   eff:68, gpu:65,  game:0,    score:2600, tier:'active',   active:'2 days ago'},
-  {rank:14, name:'Crash Carl',            eff:68, gpu:65,  game:0,    score:2600, tier:'active',   active:'4 days ago'},
-  {rank:15, name:'Theo',                  eff:66, gpu:62,  game:0,    score:2400, tier:'crawling', active:'5 days ago'},
-  {rank:16, name:'Stuck Steve',           eff:66, gpu:62,  game:0,    score:2400, tier:'crawling', active:'1 wk ago'},
-  {rank:17, name:'Frozen Fran',           eff:64, gpu:60,  game:0,    score:2200, tier:'crawling', active:'1 wk ago'},
-  {rank:18, name:'Snail Nate',            eff:62, gpu:58,  game:0,    score:2100, tier:'crawling', active:'2 wks ago'},
-  {rank:19, name:'Buffer Beth',           eff:60, gpu:55,  game:0,    score:1900, tier:'crawling', active:'2 wks ago'},
-  {rank:20, name:'Timeout Tim',           eff:58, gpu:52,  game:0,    score:1800, tier:'crawling', active:'3 wks ago'},
-];
+  import { initGpuMetrics } from '../components/GpuMetrics.js';
 
-const tierLabels = {
-  blazing:  '🔥 BLAZING',
-  cruising: '⚡ CRUISING',
-  active:   '📊 ACTIVE',
-  crawling: '🐌 CRAWLING',
-};
+  /** @type {Array<{user:string, avgUtilPct:number|null, gpuHoursAlloc:number|null, gpuHoursEffective:number|null, gpuHoursWasted?:number|null}>} */
+  let liveUsers = [];
+  let fetchedAt = null;
 
-const rankEmoji = r => r===1?'🏆':r===2?'🥈':r===3?'🥉':String(r);
-const maxRank = Math.max(...users.map((u) => u.rank));
-const rankPalette = (rank) => {
+  const rankEmoji = (r) => (r === 1 ? '🏆' : r === 2 ? '🥈' : r === 3 ? '🥉' : String(r));
+const rankPalette = (rank, maxRank) => {
   // Match leader/loser board bar styling:
   // - top 5: teal
   // - bottom 5: red
@@ -136,31 +139,47 @@ const rankPalette = (rank) => {
   return { text: '#d5ad4d', a: '#d5ad4d', b: '#ffebaf' };
 };
 
-let filtered   = [...users];
+let filtered   = [...liveUsers];
 let activeRank = null;
 
 function renderTable() {
   const tbody = document.getElementById('tbody');
   tbody.innerHTML = '';
-  filtered.forEach(u => {
+  filtered.forEach((u, idx) => {
+    const rank = idx + 1;
     const tr  = document.createElement('tr');
-    const pal = rankPalette(u.rank);
-    if (activeRank === u.rank) tr.classList.add('active-row');
+    const pal = rankPalette(rank, filtered.length);
+    if (activeRank === rank) tr.classList.add('active-row');
+
+    const eff = u.avgUtilPct;
+    const effText = eff !== null && Number.isFinite(eff) ? eff.toFixed(1) : '—';
+    const effWidth = eff !== null && Number.isFinite(eff) ? `${Math.max(0, Math.min(100, eff))}%` : '0%';
+
+    const alloc = u.gpuHoursAlloc;
+    const allocText = alloc !== null && Number.isFinite(alloc) ? `${alloc.toFixed(1)}h` : '—';
+
+    const effective = u.gpuHoursEffective;
+    const wasted = u.gpuHoursWasted ?? (alloc !== null && effective !== null ? alloc - effective : null);
+    const wastedText = wasted !== null && Number.isFinite(wasted) ? `${wasted.toFixed(1)}h` : '—';
+
+    const bonus = getGameBonus(u);
+    const status = getStatusInfo(u);
+
     tr.innerHTML = `
-      <td class="rank-cell">${rankEmoji(u.rank)}</td>
-      <td class="name-cell">${u.name}</td>
+      <td class="rank-cell">${rankEmoji(rank)}</td>
+      <td class="name-cell">${u.user}</td>
       <td>
         <div class="eff-cell">
-          <span class="eff-num" style="color:${pal.text}">${u.eff}</span>
-          <div class="ebar"><div class="efill" data-width="${u.eff}%" style="width:0;--fill-a:${pal.a};--fill-b:${pal.b}"></div></div>
+          <span class="eff-num" style="color:${pal.text}">${effText}</span>
+          <div class="ebar"><div class="efill" data-width="${effWidth}" style="width:0;--fill-a:${pal.a};--fill-b:${pal.b}"></div></div>
         </div>
       </td>
-      <td class="dim-cell">${u.gpu}hrs</td>
-      <td class="${u.game>0?'bonus-cell':'empty-cell'}">${u.game>0?'+'+u.game:'—'}</td>
-      <td class="score-cell">${u.score.toLocaleString()}</td>
-      <td><span class="tier ${u.tier}">${tierLabels[u.tier]}</span></td>
+      <td class="dim-cell">${allocText}</td>
+      <td class="dim-cell">${wastedText}</td>
+      <td class="bonus-cell">+${bonus.toLocaleString()}</td>
+      <td><span class="status-pill status-${status.className}" aria-label="${status.label}" title="${status.label}">${status.label}</span></td>
     `;
-    tr.addEventListener('click', () => openProfile(u));
+    tr.addEventListener('click', () => openProfile(u, rank));
     tbody.appendChild(tr);
   });
 
@@ -172,20 +191,59 @@ function renderTable() {
   });
 
   document.getElementById('count').textContent =
-    `${filtered.length} of ${users.length} users`;
+    `${filtered.length} of ${liveUsers.length} users`;
 }
 
-function openProfile(u) {
-  if (activeRank === u.rank) { closeProfile(); return; }
-  activeRank = u.rank;
-  document.getElementById('pp-name').textContent  = u.name;
-  document.getElementById('pp-meta').textContent  = `RANK #${u.rank} · ${tierLabels[u.tier]}`;
-  document.getElementById('pp-eff').textContent   = u.eff + '%';
-  document.getElementById('pp-gpu').textContent   = u.gpu + 'hrs';
-  document.getElementById('pp-game').textContent  = u.game > 0 ? '+' + u.game : '0';
-  document.getElementById('pp-score').textContent = u.score.toLocaleString();
-  document.getElementById('pp-tier').textContent  = tierLabels[u.tier];
-  document.getElementById('pp-last').textContent  = u.active;
+function getGameBonus(u) {
+  const eff = u.avgUtilPct ?? 0;
+  const alloc = u.gpuHoursAlloc ?? 0;
+  const effective = u.gpuHoursEffective ?? 0;
+  const wasted = Math.max(0, u.gpuHoursWasted ?? (alloc - effective));
+
+  const efficiencyReward = Math.round(eff * 4);
+  const throughputReward = Math.round(effective * 3);
+  const queueReliefReward = alloc >= 80 ? 250 : alloc >= 50 ? 160 : alloc >= 25 ? 100 : 50;
+  const savingsReward = Math.max(0, 180 - Math.round(wasted * 2));
+  const achievementBonus = eff >= 95 ? 250 : eff >= 90 ? 150 : eff >= 85 ? 100 : eff >= 80 ? 50 : 0;
+
+  return efficiencyReward + throughputReward + queueReliefReward + savingsReward + achievementBonus;
+}
+
+function getStatusInfo(u) {
+  const eff = u.avgUtilPct ?? 0;
+  const alloc = u.gpuHoursAlloc ?? 0;
+  const effective = u.gpuHoursEffective ?? 0;
+  const wasted = Math.max(0, u.gpuHoursWasted ?? (alloc - effective));
+
+  if (eff >= 90 && wasted < 12) return { label: '🔥 BLAZING', className: 'blazing' };
+  if (eff >= 80 && wasted < 20) return { label: '⚡ CRUISING', className: 'cruising' };
+  if (wasted >= 35 || eff < 60) return { label: '🚨 CONGESTING', className: 'congesting' };
+  return { label: '🐌 IDLING', className: 'idling' };
+}
+
+function openProfile(u, rank) {
+  if (activeRank === rank) { closeProfile(); return; }
+  activeRank = rank;
+
+  const eff = u.avgUtilPct;
+  const alloc = u.gpuHoursAlloc;
+  const effective = u.gpuHoursEffective;
+  const wasted = u.gpuHoursWasted ?? (alloc !== null && effective !== null ? alloc - effective : null);
+  const bonus = getGameBonus(u);
+  const status = getStatusInfo(u);
+
+  document.getElementById('pp-name').textContent = u.user;
+  document.getElementById('pp-meta').textContent = `RANK #${rank} · ${status.label} · +${bonus.toLocaleString()}`;
+  document.getElementById('pp-eff').textContent =
+    eff !== null && Number.isFinite(eff) ? eff.toFixed(1) + '%' : '—';
+  document.getElementById('pp-gpu').textContent =
+    alloc !== null && Number.isFinite(alloc) ? alloc.toFixed(1) + 'h' : '—';
+  document.getElementById('pp-game').textContent =
+    bonus !== null && Number.isFinite(bonus) ? bonus.toLocaleString() : '—';
+  document.getElementById('pp-score').textContent =
+    wasted !== null && Number.isFinite(wasted) ? wasted.toFixed(1) + 'h' : '—';
+  document.getElementById('pp-last').textContent =
+    fetchedAt ? new Date(fetchedAt).toLocaleString() : '—';
   document.getElementById('profile-panel').classList.add('open');
   renderTable();
 }
@@ -200,21 +258,52 @@ document.getElementById('pp-close').addEventListener('click', closeProfile);
 
 document.getElementById('search').addEventListener('input', e => {
   const q = e.target.value.toLowerCase();
-  filtered = users.filter(u => u.name.toLowerCase().includes(q));
+  filtered = liveUsers.filter(u => u.user.toLowerCase().includes(q));
   renderTable();
 });
 
 document.getElementById('sort').addEventListener('change', e => {
   const v = e.target.value;
-  if (v === 'eff-desc')   filtered.sort((a,b) => b.eff - a.eff);
-  if (v === 'eff-asc')    filtered.sort((a,b) => a.eff - b.eff);
-  if (v === 'gpu-desc')   filtered.sort((a,b) => b.gpu - a.gpu);
-  if (v === 'score-desc') filtered.sort((a,b) => b.score - a.score);
-  if (v === 'name-asc')   filtered.sort((a,b) => a.name.localeCompare(b.name));
+  const numOrNeg = (n) => (n === null || !Number.isFinite(n) ? -1 : n);
+  if (v === 'eff-desc')     filtered.sort((a,b) => numOrNeg(b.avgUtilPct) - numOrNeg(a.avgUtilPct));
+  if (v === 'eff-asc')      filtered.sort((a,b) => numOrNeg(a.avgUtilPct) - numOrNeg(b.avgUtilPct));
+  if (v === 'gpu-desc')     filtered.sort((a,b) => numOrNeg(b.gpuHoursAlloc) - numOrNeg(a.gpuHoursAlloc));
+  if (v === 'effhrs-desc')  filtered.sort((a,b) => {
+    const wastedA = a.gpuHoursWasted ?? ((a.gpuHoursAlloc ?? 0) - (a.gpuHoursEffective ?? 0));
+    const wastedB = b.gpuHoursWasted ?? ((b.gpuHoursAlloc ?? 0) - (b.gpuHoursEffective ?? 0));
+    return numOrNeg(wastedB) - numOrNeg(wastedA);
+  });
+  if (v === 'name-asc')     filtered.sort((a,b) => a.user.localeCompare(b.user));
   renderTable();
 });
 
+async function loadLiveUsers() {
+  const tbody = document.getElementById('tbody');
+  tbody.innerHTML = `<tr><td colspan="7" class="dim-cell">Loading live data…</td></tr>`;
+
+  try {
+    const response = await fetch('/api/gpu-metrics.json');
+    const data = await response.json();
+    if (!response.ok || !data?.ok) throw new Error(data?.error || `Request failed (${response.status})`);
+
+    liveUsers = data.allUsers || [];
+    fetchedAt = data.fetchedAt || null;
+    filtered = [...liveUsers];
+    renderTable();
+  } catch (error) {
+    tbody.innerHTML = `<tr><td colspan="7" class="dim-cell">Could not load live data.</td></tr>`;
+    document.getElementById('count').textContent = '0 users';
+  }
+}
+
 renderTable();
+loadLiveUsers();
+
+initGpuMetrics({
+  mountId: 'gpu-metrics-root',
+  lookback: '7d',
+  minHours: 5
+});
 </script>
 
 <style>
@@ -237,15 +326,20 @@ renderTable();
   /* ── SECTION HEADER — matches your existing card style ── */
   .section-header {
     display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: 1.5rem;
+    flex-direction: column;
+    gap: 1rem;
     margin-bottom: 1.5rem;
     padding: 1.5rem;
     border: 1px solid rgba(83,213,253,0.28);
     border-radius: 24px;
     background: #061318;
     box-shadow: 0 0 24px rgba(83,213,253,0.12);
+  }
+  .section-header-top {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1.5rem;
   }
   .section-eyebrow {
     margin: 0 0 0.6rem;
@@ -304,15 +398,17 @@ renderTable();
   .controls {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    margin-bottom: 1rem;
-    flex-wrap: wrap;
+    gap: 0.9rem;
+    flex-wrap: nowrap;
+    width: 100%;
+    min-width: 0;
+    margin-bottom: 0;
   }
   .search-wrap {
     position: relative;
-    flex: 1 1 18rem;
-    min-width: 14rem;
-    max-width: 24rem;
+    flex: 1 1 0;
+    min-width: 0;
+    max-width: none;
   }
   .search-icon {
     position: absolute;
@@ -323,6 +419,8 @@ renderTable();
   }
   .search-input {
     width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
     background: #061318;
     border: 1px solid rgba(83,213,253,0.2);
     border-radius: 8px;
@@ -336,9 +434,11 @@ renderTable();
   .search-input:focus { border-color: rgba(83,213,253,0.5); }
   .search-input::placeholder { color: #2a4a5a; }
   .sort-select {
-    flex: 1 1 18rem;
-    min-width: 14rem;
+    flex: 0 0 18rem;
+    width: 18rem;
+    min-width: 18rem;
     max-width: 18rem;
+    box-sizing: border-box;
     background: #061318;
     border: 1px solid rgba(83,213,253,0.2);
     border-radius: 8px;
@@ -349,11 +449,13 @@ renderTable();
     outline: none;
   }
   .count-text {
+    flex: 0 0 auto;
     margin-left: auto;
     font-family: 'Orbitron', sans-serif;
     font-size: 0.7rem;
     color: #3a5a6a;
     letter-spacing: 0.1em;
+    white-space: nowrap;
   }
 
   /* ── PROFILE PANEL ── */
@@ -528,6 +630,44 @@ renderTable();
   .table-wrap :global(.empty-cell) { color: #456474; }
   .table-wrap :global(.score-cell) { color: #f8fafc; font-weight: 700; font-family: 'Orbitron', sans-serif; }
 
+  .table-wrap :global(.status-pill) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 5.25rem;
+    padding: 0.28rem 0.75rem;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    box-shadow: 0 0 10px rgba(0,0,0,0.18);
+    vertical-align: middle;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.62rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .table-wrap :global(.status-pill.status-blazing) {
+    background: linear-gradient(180deg, rgba(239,68,68,0.28), rgba(239,68,68,0.12));
+    border-color: rgba(239,68,68,0.35);
+    box-shadow: 0 0 14px rgba(239,68,68,0.22);
+  }
+  .table-wrap :global(.status-pill.status-cruising) {
+    background: linear-gradient(180deg, rgba(213,173,77,0.3), rgba(213,173,77,0.12));
+    border-color: rgba(213,173,77,0.38);
+    box-shadow: 0 0 14px rgba(213,173,77,0.2);
+  }
+  .table-wrap :global(.status-pill.status-idling) {
+    background: linear-gradient(180deg, rgba(83,213,253,0.18), rgba(83,213,253,0.08));
+    border-color: rgba(83,213,253,0.24);
+    box-shadow: 0 0 14px rgba(83,213,253,0.14);
+  }
+  .table-wrap :global(.status-pill.status-congesting) {
+    background: linear-gradient(180deg, rgba(239,68,68,0.18), rgba(127,29,29,0.12));
+    border-color: rgba(239,68,68,0.28);
+    box-shadow: 0 0 14px rgba(127,29,29,0.16);
+  }
+
   /* tier badges */
   .table-wrap :global(.tier) {
     padding: 4px 10px;
@@ -547,22 +687,12 @@ renderTable();
   @keyframes sweep { 0%{left:-100%} 60%{left:100%} 100%{left:100%} }
 
   @media (max-width: 768px) {
-    .section-header { flex-direction: column; align-items: flex-start; }
+    .section-header-top { flex-direction: column; align-items: flex-start; }
     .section-header h2 { font-size: 1.5rem; }
     .pp-stats { grid-template-columns: repeat(2, 1fr); }
     .users-section { padding: 1.5rem 1rem; }
-  }
-
-  @media (max-width: 560px) {
-    .search-wrap,
-    .sort-select {
-      flex: 1 1 100%;
-      min-width: 0;
-    }
-    .count-text {
-      flex: 1 1 100%;
-      margin-left: 0;
-      text-align: right;
-    }
+    .controls { flex-direction: column; align-items: stretch; }
+    .sort-select { width: 100%; min-width: 0; max-width: none; flex-basis: auto; }
+    .count-text { margin-left: 0; }
   }
 </style>

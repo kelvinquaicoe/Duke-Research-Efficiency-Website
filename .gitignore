@@ -23,3 +23,8 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+.env.local
+.vercel/
+
+# local nested-repo backups
+src/RE Chatbot/Website chatbot RE/.git.backup/

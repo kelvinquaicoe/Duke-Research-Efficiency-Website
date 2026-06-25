@@ -4,3 +4,12 @@
 
 [build.environment]
   NODE_VERSION = "22.12.0"
+
+[functions]
+  directory = "functions-serve"
+
+[[redirects]]
+  from = "/api/gpu-metrics.json"
+  to = "/.netlify/functions/gpu-metrics"
+  status = 200
+  force = true

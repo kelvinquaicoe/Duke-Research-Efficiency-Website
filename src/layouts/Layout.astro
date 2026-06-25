@@ -1,3 +1,8 @@
+---
+import SiteHeader from '../components/SiteHeader.astro';
+import ChatbotWidget from '../components/ChatbotWidget.astro';
+---
+
 <!doctype html>
 <html lang="en">
 	<head>
@@ -9,13 +14,13 @@
 			href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Orbitron:wght@500;700;800&display=swap"
 			rel="stylesheet"
 		/>
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<link rel="icon" href="/favicon.ico" />
 		<meta name="generator" content={Astro.generator} />
 		<title>Astro Basics</title>
 	</head>
 	<body>
 		<slot />
+		<ChatbotWidget />
 	</body>
 </html>
 
@@ -62,6 +67,7 @@
 		height: 60px;
 		object-fit: contain;
 		flex-shrink: 0;
+		background: transparent;
 	}
 
 	:global(.site-header .brand-text) {

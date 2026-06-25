@@ -23,38 +23,24 @@ const defaultChatbotUrl = configuredChatbotUrl || `${baseUrl}chatbot/`;
   <iframe id="chatbot-frame" src="about:blank" title="Slurm-O Chatbot"></iframe>
 </div>
 
-<div id="chatbot-confirm" hidden>
-  <div id="chatbot-confirm-card">
-    <h3>Close Chatbot?</h3>
-    <p>Are you sure you want to close?</p>
-    <div class="actions">
-      <button id="chatbot-confirm-close">Close</button>
-      <button id="chatbot-confirm-cancel">Cancel</button>
-    </div>
-  </div>
-</div>
 
 <script is:inline>
   const toggleBtn = document.getElementById('chatbot-toggle');
   const modal = document.getElementById('chatbot-modal');
   const frame = document.getElementById('chatbot-frame');
   const closeBtn = document.getElementById('chatbot-close');
-  const confirm = document.getElementById('chatbot-confirm');
-  const confirmCloseBtn = document.getElementById('chatbot-confirm-close');
-  const confirmCancelBtn = document.getElementById('chatbot-confirm-cancel');
 
   const chatbotUrl = toggleBtn?.dataset?.chatbotUrl || '/chatbot/';
   frame.src = chatbotUrl;
 
   const openModal = () => {
     modal.hidden = false;
-    confirm.hidden = true;
   };
 
   const closeModal = () => {
     modal.hidden = true;
-    confirm.hidden = true;
   };
+
 
   toggleBtn?.addEventListener('click', () => {
     if (modal.hidden) {
@@ -64,27 +50,11 @@ const defaultChatbotUrl = configuredChatbotUrl || `${baseUrl}chatbot/`;
     }
   });
 
-  closeBtn?.addEventListener('click', () => {
-    confirm.hidden = false;
-  });
 
-  confirmCloseBtn?.addEventListener('click', closeModal);
-  confirmCancelBtn?.addEventListener('click', () => {
-    confirm.hidden = true;
-  });
-
-  confirm?.addEventListener('click', (event) => {
-    if (event.target === confirm) {
-      confirm.hidden = true;
-    }
-  });
+  closeBtn?.addEventListener('click', closeModal);
 
   document.addEventListener('keydown', (event) => {
     if (event.key !== 'Escape') return;
-    if (!confirm.hidden) {
-      confirm.hidden = true;
-      return;
-    }
     if (!modal.hidden) {
       closeModal();
     }
@@ -168,8 +138,7 @@ const defaultChatbotUrl = configuredChatbotUrl || `${baseUrl}chatbot/`;
     overflow: hidden;
   }
 
-  #chatbot-modal[hidden],
-  #chatbot-confirm[hidden] {
+  #chatbot-modal[hidden] {
     display: none !important;
   }
 
@@ -215,62 +184,6 @@ const defaultChatbotUrl = configuredChatbotUrl || `${baseUrl}chatbot/`;
     border: none;
   }
 
-  #chatbot-confirm {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1002;
-  }
-
-  #chatbot-confirm-card {
-    background: #0d1830;
-    border: 2px solid rgba(0, 199, 255, 0.3);
-    border-radius: 12px;
-    padding: 24px;
-    max-width: 300px;
-    text-align: center;
-  }
-
-  #chatbot-confirm-card h3 {
-    margin: 0 0 12px;
-    color: #e2e8f8;
-    font-size: 16px;
-  }
-
-  #chatbot-confirm-card p {
-    margin: 0 0 20px;
-    color: rgba(255, 255, 255, 0.7);
-    font-size: 14px;
-  }
-
-  #chatbot-confirm-card .actions {
-    display: flex;
-    gap: 12px;
-    justify-content: center;
-  }
-
-  #chatbot-confirm-close {
-    padding: 8px 20px;
-    background: #ff4b4b;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 600;
-  }
-
-  #chatbot-confirm-cancel {
-    padding: 8px 20px;
-    background: rgba(0, 199, 255, 0.2);
-    color: #00c7ff;
-    border: 1px solid rgba(0, 199, 255, 0.3);
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 600;
-  }
 
   #chatbot-resize-handle {
     width: 20px;

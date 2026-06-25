@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, type ChangeEvent, type KeyboardEvent, type CSSProperties } from "react";
 import slurmNeutral from "../assets/slurmo-neutral.png";
 import slurmCurious from "../assets/slurmo-curious.png";
 import slurmThinking from "../assets/slurmo-thinking.png";
@@ -232,6 +232,9 @@ function detectEmotion(
     trimmed.length > 0 &&
     wordCount <= 3 &&
     !isSpecific;
+
+  const greetingPattern = /\b(hi|hello|hey|yo|greetings|good\s+(morning|afternoon|evening))\b/i;
+  if (greetingPattern.test(trimmed)) return "neutral";
 
   if (isSpecific) return "excited";
   if (isVague && trimmed.length > 0) return "confused";
@@ -914,20 +917,21 @@ function Avatar({ emotion, eyeTarget, centerX, centerY, isExiting }: AvatarProps
 
 // ─── Emotion Indicator ────────────────────────────────────────────────────────
 
-function EmotionDot({ emotion }: { emotion: Emotion }) {
+function EmotionDot({ emotion, label, style }: { emotion: Emotion; label: string; style?: CSSProperties }) {
   const config = EMOTIONS[emotion];
   return (
     <div className="flex items-center gap-2">
       <span
         style={{
-          fontFamily: "'Minecraft', monospace",
+          fontFamily: "'JetBrains Mono', monospace",
           fontSize: "0.6rem",
           color: config.orbitColor,
           letterSpacing: "0.15em",
           textTransform: "uppercase",
+          ...style,
         }}
       >
-        {config.label}
+        {label}
       </span>
     </div>
   );
@@ -963,7 +967,7 @@ function MessageBubble({ msg }: { msg: Message }) {
         >
           {/* Sender label */}
           <div style={{
-            fontFamily: "'Minecraft', monospace",
+            fontFamily: "'JetBrains Mono', monospace",
             fontSize: "0.5rem",
             color: emotionColor,
             letterSpacing: "0.12em",
@@ -974,7 +978,7 @@ function MessageBubble({ msg }: { msg: Message }) {
           </div>
           {/* Message text */}
           <p style={{
-            fontFamily: "'Minecraft', monospace",
+            fontFamily: "'JetBrains Mono', monospace",
             fontSize: "0.68rem",
             color: "#e2e8f8",
             lineHeight: 1.7,
@@ -1012,6 +1016,7 @@ const DEMO_RESPONSES: Record<Emotion, string[]> = {
     "I'm processing your input, but the signal is a bit diffuse. A few more specifics would help me zero in.",
   ],
   neutral: [
+    "Hey! I'm Slurm-O. What can I help you with today?",
     "I'm here and ready. What would you like to explore today?",
     "Standing by. Ask me anything.",
   ],
@@ -1108,6 +1113,7 @@ export default function App() {
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isReplyTyping, setIsReplyTyping] = useState(false);
   const [hasResponse, setHasResponse] = useState(false);
   const [hasError, setHasError] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -1134,7 +1140,10 @@ export default function App() {
   const [appState, setAppState] = useState<"dormant" | "opening" | "open">(
     startsEmbedded ? "open" : "dormant"
   );
+  const [bootPhase, setBootPhase] = useState(0);
   const hasOpenedRef = useRef(startsEmbedded);
+  const bootSequenceStartedRef = useRef(false);
+  const [revealProgress, setRevealProgress] = useState(0);
   const [introText, setIntroText] = useState("");
   const [introDone, setIntroDone] = useState(false);
   const introFiredRef = useRef(false);
@@ -1142,10 +1151,11 @@ export default function App() {
   const [walkDir, setWalkDir] = useState(1);
 
   const avatarRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const thinkingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const responseTypingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Track mouse position + trigger opening on first move
   useEffect(() => {
@@ -1182,6 +1192,61 @@ export default function App() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  useEffect(() => {
+    if (appState === "open") {
+      inputRef.current?.focus();
+    }
+  }, [appState, messages]);
+
+  useEffect(() => {
+    if (appState === "open" && !isSubmitted) {
+      inputRef.current?.focus();
+    }
+  }, [appState, isSubmitted]);
+
+  useEffect(() => {
+    if (appState !== "open" || bootSequenceStartedRef.current) return;
+    bootSequenceStartedRef.current = true;
+
+    const timers = [
+      setTimeout(() => setBootPhase(1), 1000),
+      setTimeout(() => setBootPhase(2), 1400),
+      setTimeout(() => setBootPhase(3), 1800),
+      setTimeout(() => setBootPhase(4), 2500),
+    ];
+
+    return () => {
+      timers.forEach((timer) => clearTimeout(timer));
+    };
+  }, [appState]);
+
+  useEffect(() => {
+    if (appState !== "open") return;
+
+    const handleWheel = (event: WheelEvent) => {
+      if (event.deltaY <= 0) return;
+      const delta = Math.min(0.22, event.deltaY / 1600);
+      setRevealProgress((prev) => Math.min(1, prev + delta));
+    };
+
+    const handlePointerMove = () => {
+      setRevealProgress((prev) => Math.min(1, Math.max(prev, 0.04) + 0.008));
+    };
+
+    const handleTouchMove = () => {
+      setRevealProgress((prev) => Math.min(1, Math.max(prev, 0.06) + 0.01));
+    };
+
+    window.addEventListener("wheel", handleWheel, { passive: true });
+    window.addEventListener("mousemove", handlePointerMove, { passive: true });
+    window.addEventListener("touchmove", handleTouchMove, { passive: true });
+    return () => {
+      window.removeEventListener("wheel", handleWheel);
+      window.removeEventListener("mousemove", handlePointerMove);
+      window.removeEventListener("touchmove", handleTouchMove);
+    };
+  }, [appState]);
+
   // Cycle idle emotion + flip walk direction while dormant
   useEffect(() => {
     if (appState !== "dormant") return;
@@ -1199,21 +1264,21 @@ export default function App() {
     return () => { clearInterval(emotionTimer); clearInterval(walkTimer); };
   }, [appState]);
 
-  // Typewriter intro — fires once on first "open"
+  // Typewriter intro — fires once after the boot sequence reaches the greeting phase
   useEffect(() => {
-    if (appState !== "open" || introFiredRef.current) return;
+    if (appState !== "open" || bootPhase < 4 || introFiredRef.current) return;
     introFiredRef.current = true;
-    const msg = "Hello, I'm Slurm-O. Cluster_Cmd, Mascot & AI assistant! What can I help you with?";
+    const msg = "Hello, I'm Slurm-0, Cluster_Cmd, Mascot & AI assistant! What can I help you with?";
     let i = 0;
     const tick = setInterval(() => {
       i++;
       setIntroText(msg.slice(0, i));
       if (i >= msg.length) { clearInterval(tick); setIntroDone(true); }
-    }, 38);
+    }, 32);
     return () => clearInterval(tick);
-  }, [appState]);
+  }, [appState, bootPhase]);
 
-  const emotion = detectEmotion(
+  const detectedEmotion = detectEmotion(
     input,
     isTyping,
     isSubmitted,
@@ -1221,10 +1286,39 @@ export default function App() {
     hasError
   );
 
+  const emotion = hasError
+    ? "angry"
+    : isSubmitted || isReplyTyping
+    ? "thinking"
+    : hasResponse
+    ? "excited"
+    : isTyping
+    ? "curious"
+    : detectedEmotion;
+
   const config = EMOTIONS[emotion];
+  const statusLabel = hasError
+    ? "ERROR"
+    : isSubmitted
+    ? "PROCESSING"
+    : isReplyTyping
+    ? "PROCESSING"
+    : hasResponse
+    ? "SUCCESS"
+    : isTyping
+    ? "WORKING"
+    : "STANDBY";
+  const hasConversation = messages.length > 0 || isSubmitted || isReplyTyping || hasResponse || hasError;
+  const recentMessages = messages.slice(-2);
+  const isRevealed = hasConversation || bootPhase >= 3;
+  const showGreeting = Boolean(introText) && bootPhase >= 4 && !hasConversation;
+  const avatarSize = hasConversation ? 192 : 260;
+  const avatarRevealOpacity = hasConversation ? 1 : bootPhase >= 4 ? 1 : bootPhase >= 3 ? 0.42 : 0;
+  const mascotRevealOpacity = hasConversation ? 1 : bootPhase >= 4 ? 1 : bootPhase >= 3 ? 0.56 : 0;
+  const inputRevealOpacity = hasConversation ? 0.96 : bootPhase >= 4 ? 0.95 : 0;
 
   const handleInputChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
+    (e: ChangeEvent<HTMLTextAreaElement>) => {
       const nextValue = e.target.value;
       setInput(nextValue);
       setHasResponse(false);
@@ -1241,6 +1335,7 @@ export default function App() {
       }
 
       setIsTyping(true);
+      setRevealProgress((prev) => Math.max(prev, 0.18));
       typingTimerRef.current = setTimeout(() => {
         setIsTyping(false);
       }, 900);
@@ -1260,11 +1355,19 @@ export default function App() {
     ]);
     setInput("");
     setIsTyping(false);
+    requestAnimationFrame(() => inputRef.current?.focus());
     setIsSubmitted(true);
+    setIsReplyTyping(false);
     setHasResponse(false);
     setHasError(false);
+    setRevealProgress(1);
 
     if (thinkingTimerRef.current) clearTimeout(thinkingTimerRef.current);
+    if (responseTypingTimerRef.current) {
+      clearInterval(responseTypingTimerRef.current);
+      responseTypingTimerRef.current = null;
+    }
+
     thinkingTimerRef.current = setTimeout(() => {
       const isAngryInput = MALICIOUS_PATTERNS.some((p) => p.test(trimmed));
       if (isAngryInput) {
@@ -1278,40 +1381,66 @@ export default function App() {
             emotion: "angry",
           },
         ]);
-      } else {
-        setHasResponse(true);
-        setIsSubmitted(false);
-        const responseEmotion = submittedEmotion;
-        setMessages((prev) => [
-          ...prev,
-          {
-            role: "assistant",
-            content: generateResponse(submittedEmotion),
-            emotion: responseEmotion,
-          },
-        ]);
+        setTimeout(() => {
+          setHasError(false);
+        }, 3000);
+        return;
       }
 
-      setTimeout(() => {
-        setHasResponse(false);
-        setHasError(false);
-      }, 3000);
+      const responseText = generateResponse(submittedEmotion);
+      setIsSubmitted(false);
+      setIsReplyTyping(true);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: "",
+          emotion: submittedEmotion,
+        },
+      ]);
+
+      let index = 0;
+      responseTypingTimerRef.current = setInterval(() => {
+        index += 1;
+        setMessages((prev) => {
+          if (prev.length === 0) return prev;
+          const next = [...prev];
+          const last = next[next.length - 1];
+          if (last?.role === "assistant") {
+            next[next.length - 1] = {
+              ...last,
+              content: responseText.slice(0, index),
+            };
+          }
+          return next;
+        });
+
+        if (index >= responseText.length) {
+          if (responseTypingTimerRef.current) {
+            clearInterval(responseTypingTimerRef.current);
+            responseTypingTimerRef.current = null;
+          }
+          setIsReplyTyping(false);
+          setHasResponse(true);
+          setTimeout(() => {
+            setHasResponse(false);
+          }, 3000);
+        }
+      }, 32);
     }, 2200);
   }, [input]);
 
   const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLInputElement>) => {
-      if (e.key === "Enter") handleSubmit();
+    (e: KeyboardEvent<HTMLTextAreaElement>) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        handleSubmit();
+      }
     },
     [handleSubmit]
   );
 
-  const handleExitRequest = useCallback(() => {
-    setShowExitWarning(true);
-  }, []);
-
   const handleExitConfirm = useCallback(() => {
-    setShowExitWarning(false);
     setIsExiting(true);
     setTimeout(() => {
       setIsExiting(false);
@@ -1322,23 +1451,23 @@ export default function App() {
       setIntroText("");
       setIntroDone(false);
       introFiredRef.current = false;
+      bootSequenceStartedRef.current = false;
+      setBootPhase(0);
+      setRevealProgress(0);
     }, 1100);
-  }, []);
-
-  const handleExitCancel = useCallback(() => {
-    setShowExitWarning(false);
   }, []);
 
   useEffect(() => {
     return () => {
       if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
       if (thinkingTimerRef.current) clearTimeout(thinkingTimerRef.current);
+      if (responseTypingTimerRef.current) clearInterval(responseTypingTimerRef.current);
     };
   }, []);
 
   return (
     <div
-      className="size-full min-h-screen flex flex-col items-center justify-start overflow-hidden"
+      className="size-full min-h-screen flex flex-col items-center justify-start overflow-x-hidden overflow-y-auto"
       style={{
         background: "#050810",
         fontFamily: "'Outfit', sans-serif",
@@ -1349,6 +1478,15 @@ export default function App() {
           : undefined,
         opacity: appState === "dormant" ? 0 : undefined,
         cursor: "crosshair",
+        height: "100dvh",
+        width: "100%",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "flex-start",
+        overflowX: "hidden",
+        overflowY: "hidden",
+        paddingBottom: 24,
       }}
     >
       <style>{EXIT_STYLES}</style>
@@ -1386,6 +1524,7 @@ export default function App() {
                       aspectRatio: "1 / 1",
                       objectFit: "contain",
                       imageRendering: "pixelated",
+                      display: "block",
                     }}
                   />
                 </div>
@@ -1423,7 +1562,7 @@ export default function App() {
 
       {/* Exit button */}
       <button
-        onClick={handleExitRequest}
+        onClick={handleExitConfirm}
         className="fixed top-4 right-4 z-50 flex items-center justify-center transition-all duration-200 active:scale-90"
         style={{
           width: 32,
@@ -1432,6 +1571,9 @@ export default function App() {
           background: "rgba(255,255,255,0.05)",
           border: "1px solid rgba(255,255,255,0.1)",
           cursor: "pointer",
+          opacity: bootPhase >= 3 ? 1 : 0,
+          pointerEvents: bootPhase >= 3 ? "auto" : "none",
+          transition: "opacity 240ms ease 260ms, background 200ms ease, border-color 200ms ease",
         }}
         onMouseEnter={e => {
           (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,60,80,0.18)";
@@ -1447,112 +1589,30 @@ export default function App() {
         </svg>
       </button>
 
-      {/* Exit warning dialog */}
-      {showExitWarning && (
+
+      {/* Boot crosshair */}
+      {appState === "open" && (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center"
-          style={{ background: "rgba(5,8,16,0.82)", backdropFilter: "blur(8px)" }}
+          className="fixed inset-0 pointer-events-none z-40"
+          style={{
+            opacity: bootPhase >= 1 && bootPhase < 3 ? 1 : 0,
+            transition: "opacity 280ms ease",
+          }}
         >
           <div
             style={{
-              position: "relative",
-              background: "#0a0f1c",
-              border: "3px solid #d00000",
-              borderRadius: 0,
-              padding: "30px 30px 28px",
-              maxWidth: 380,
-              width: "90%",
-              boxShadow: "8px 8px 0 0 rgba(208,0,0,0.35), 0 0 36px rgba(208,0,0,0.22)",
-              textAlign: "center",
-              imageRendering: "pixelated",
+              position: "absolute",
+              left: "50%",
+              top: "50%",
+              width: 16,
+              height: 16,
+              transform: "translate(-50%, -50%)",
+              filter: "drop-shadow(0 0 8px rgba(0,229,255,0.55))",
             }}
           >
-            {/* Pixel corner accents */}
-            {([
-              { top: -3, left: -3 }, { top: -3, right: -3 },
-              { bottom: -3, left: -3 }, { bottom: -3, right: -3 },
-            ] as const).map((pos, i) => (
-              <span key={i} style={{ position: "absolute", width: 8, height: 8, background: "#d00000", ...pos }} />
-            ))}
-
-            {/* Pixel warning icon — square box with "!" */}
-            <div style={{
-              width: 52, height: 52,
-              borderRadius: 0,
-              background: "rgba(208,0,0,0.14)",
-              border: "3px solid #d00000",
-              margin: "0 auto 18px",
-              imageRendering: "pixelated",
-            }}>
-              <svg width="52" height="52" viewBox="0 0 13 13" style={{ display: "block" }} shapeRendering="crispEdges">
-                <rect x="6" y="3" width="1" height="4" fill="#ff2b2b" />
-                <rect x="6" y="8" width="1" height="1" fill="#ff2b2b" />
-              </svg>
-            </div>
-
-            <p style={{
-              fontFamily: "'Minecraft', monospace",
-              fontSize: "1.05rem",
-              color: "#f1f6ff",
-              marginBottom: 12,
-              letterSpacing: "0.04em",
-            }}>
-              CLOSE SESSION?
-            </p>
-            <p style={{
-              fontFamily: "'Minecraft', monospace",
-              fontSize: "0.72rem",
-              color: "rgba(200,210,230,0.6)",
-              marginBottom: 26,
-              lineHeight: 1.7,
-              letterSpacing: "0.02em",
-            }}>
-              This will end your current conversation and return Slurm-O to standby mode.
-            </p>
-            <div style={{ display: "flex", gap: 12 }}>
-              <button
-                onClick={handleExitCancel}
-                style={{
-                  flex: 1,
-                  padding: "11px 0",
-                  borderRadius: 0,
-                  background: "#141a2b",
-                  border: "2px solid rgba(255,255,255,0.18)",
-                  boxShadow: "3px 3px 0 0 rgba(0,0,0,0.5)",
-                  color: "rgba(210,220,240,0.8)",
-                  fontFamily: "'Minecraft', monospace",
-                  fontSize: "0.8rem",
-                  letterSpacing: "0.04em",
-                  cursor: "pointer",
-                  transition: "all 0.12s ease",
-                }}
-                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = "#1d2540"; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "#141a2b"; }}
-              >
-                CANCEL
-              </button>
-              <button
-                onClick={handleExitConfirm}
-                style={{
-                  flex: 1,
-                  padding: "11px 0",
-                  borderRadius: 0,
-                  background: "#2a0606",
-                  border: "2px solid #d00000",
-                  boxShadow: "3px 3px 0 0 rgba(208,0,0,0.4)",
-                  color: "#ff4b4b",
-                  fontFamily: "'Minecraft', monospace",
-                  fontSize: "0.8rem",
-                  letterSpacing: "0.04em",
-                  cursor: "pointer",
-                  transition: "all 0.12s ease",
-                }}
-                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = "#450a0a"; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "#2a0606"; }}
-              >
-                CLOSE SESSION
-              </button>
-            </div>
+            <span style={{ position: "absolute", left: 7, top: 0, width: 2, height: 16, background: "rgba(245,248,255,0.95)" }} />
+            <span style={{ position: "absolute", left: 0, top: 7, width: 16, height: 2, background: "rgba(245,248,255,0.95)" }} />
+            <span style={{ position: "absolute", left: 6, top: 6, width: 4, height: 4, borderRadius: "50%", background: "rgba(0,229,255,0.95)" }} />
           </div>
         </div>
       )}
@@ -1562,20 +1622,38 @@ export default function App() {
         className="fixed inset-0 pointer-events-none"
         style={{
           background: `radial-gradient(ellipse 60% 50% at 50% 30%, ${config.glowColor}, transparent 70%)`,
-          transition: "background 1s ease",
+          opacity: hasConversation ? 1 : bootPhase >= 2 ? Math.min(1, (bootPhase - 1) * 0.55) : 0,
+          transition: "background 1s ease, opacity 0.6s ease",
         }}
       />
       <div
         className="fixed inset-0 pointer-events-none"
         style={{
           background: `radial-gradient(ellipse 40% 40% at 50% 80%, ${config.glowSecondary}, transparent 70%)`,
-          transition: "background 1s ease",
+          opacity: hasConversation ? 1 : bootPhase >= 2 ? Math.min(1, (bootPhase - 1) * 0.42) : 0,
+          transition: "background 1s ease, opacity 0.6s ease",
+        }}
+      />
+      <div
+        className="fixed inset-0 pointer-events-none"
+        style={{
+          background: `radial-gradient(circle at 50% 46%, rgba(0,199,255,0.12) 0%, rgba(0,199,255,0.05) 12%, transparent 34%)`,
+          opacity: hasConversation ? 0.9 : bootPhase >= 2 ? Math.min(0.9, (bootPhase - 1) * 0.28) : 0,
+          animation: "nc-dormant-pulse 2.8s ease-in-out infinite",
+          transition: "opacity 0.6s ease",
         }}
       />
 
       {/* Header */}
-      <header className="w-full max-w-2xl flex items-center justify-between px-6 pt-8 pb-2 z-10">
-        <div>
+      <header
+        className="w-full max-w-2xl flex items-center justify-between px-6 pt-8 pb-2 z-20 relative"
+        style={{
+          opacity: isRevealed ? 1 : 0,
+          pointerEvents: isRevealed ? "auto" : "none",
+          transition: "opacity 0.28s ease",
+        }}
+      >
+        <div style={{ opacity: bootPhase >= 3 ? 1 : 0, transition: "opacity 240ms ease 0ms" }}>
           <div className="flex items-center gap-3">
             <div
               className="w-1.5 h-6 rounded-full"
@@ -1587,42 +1665,48 @@ export default function App() {
             />
             <h1
               style={{
-                fontFamily: "'Minecraft', monospace",
+                fontFamily: "'JetBrains Mono', monospace",
                 fontSize: "1.15rem",
                 color: "#e2e8f8",
                 letterSpacing: "0.04em",
                 margin: 0,
               }}
             >
-              Slurm<span style={{ color: config.orbitColor }}>-O</span>
+              Slurm<span style={{ color: config.orbitColor }}>-0</span>
             </h1>
           </div>
         </div>
-        <EmotionDot emotion={emotion} />
+        <EmotionDot emotion={emotion} label={statusLabel} style={{ opacity: bootPhase >= 3 ? 1 : 0, transition: "opacity 240ms ease 180ms" }} />
       </header>
 
       {/* Avatar + float wrapper */}
       <div
-        className="relative z-10 mt-4 flex flex-col items-center"
+        className="relative z-20 mt-4 flex flex-col items-center"
         style={{
           animation: appState === "open" && !isExiting
             ? "nc-float 3.8s ease-in-out infinite"
             : undefined,
+          opacity: isRevealed ? 1 : 0,
+          transform: hasConversation ? "translateY(0px)" : `translateY(${(1 - revealProgress) * 14}px)`,
+          transition: "opacity 0.65s ease, transform 0.6s ease",
         }}
       >
         {/* Avatar */}
         <div
           ref={avatarRef}
           style={{
-            width: 260,
-            height: 260,
+            width: avatarSize,
+            height: avatarSize,
             position: "relative",
             animation: isExiting
               ? "nc-exit-avatar 1.0s cubic-bezier(0.4,0,1,1) forwards"
               : appState === "opening"
               ? "nc-open-avatar 1.6s cubic-bezier(0.22,1,0.36,1) forwards"
               : undefined,
+            opacity: avatarRevealOpacity,
+            transition: "width 320ms ease, height 320ms ease, opacity 720ms ease-out",
           }}
+
         >
           {/* Outer ambient glow */}
           <div
@@ -1642,13 +1726,20 @@ export default function App() {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
+            background: "rgba(255,255,255,0.02)",
+            border: "1px solid rgba(255,255,255,0.08)",
+            borderRadius: 28,
             filter: isExiting
               ? `drop-shadow(0 0 12px #ffd60a) drop-shadow(0 0 24px #ffd60a80)`
               : emotion !== "neutral"
               ? `drop-shadow(0 0 10px ${config.orbitColor}) drop-shadow(0 0 20px ${config.orbitColor}80)`
               : "drop-shadow(0 0 6px rgba(0,180,216,0.4))",
-            transition: "filter 0.5s ease",
+            transition: "filter 0.5s ease, transform 320ms ease, opacity 0.6s ease",
+            transform: hasConversation ? "scale(0.92)" : "scale(1)",
+            transformOrigin: "center",
+            opacity: mascotRevealOpacity,
           }}>
+
             <img
               src={imageSrc(isExiting ? GOODBYE_IMGS[goodbyeFrame] : EMOTION_IMGS[emotion])}
               alt="Slurm-O mascot"
@@ -1658,14 +1749,17 @@ export default function App() {
                 height: "100%",
                 aspectRatio: "1 / 1",
                 objectFit: "contain",
+                display: "block",
                 imageRendering: "pixelated",
+                opacity: mascotRevealOpacity,
+                transition: "opacity 700ms ease-out 60ms",
               }}
             />
           </div>
         </div>
 
         {/* Circular shadow + orbit rings beneath */}
-        <div style={{ position: "relative", width: 220, height: 32, marginTop: -8 }}>
+        <div style={{ position: "relative", width: hasConversation ? 170 : 220, height: 32, marginTop: -8, transition: "width 320ms ease" }}>
           {/* Soft blurred shadow ellipse */}
           <div style={{
             position: "absolute",
@@ -1684,19 +1778,20 @@ export default function App() {
       </div>
 
       {/* Intro text — typewriter */}
-      {introText && (
+      {showGreeting && (
         <p
           className="z-10 text-center px-8"
           style={{
             marginTop: 18,
-            fontFamily: "'Minecraft', monospace",
+            fontFamily: "'JetBrains Mono', monospace",
             fontSize: "0.82rem",
             color: config.orbitColor,
             opacity: 0.82,
             letterSpacing: "0.01em",
-            transition: "color 0.6s ease",
+            transition: "color 0.6s ease, opacity 240ms ease, transform 240ms ease",
             animation: "nc-intro-in 0.4s ease-out forwards",
             maxWidth: 480,
+            filter: "drop-shadow(0 0 8px rgba(0,0,0,0.35))",
           }}
         >
           {introText}
@@ -1705,17 +1800,25 @@ export default function App() {
 
       {/* Messages */}
       <div
-        className="w-full max-w-2xl flex-1 overflow-y-auto px-6 py-4 z-10"
-        style={{
-          maxHeight: "calc(100vh - 520px)",
-          minHeight: "80px",
-          scrollbarWidth: "none",
-        }}
+      className="w-full max-w-2xl flex-1 overflow-hidden px-6 py-4 z-20"
+      style={{
+        minHeight: 0,
+        width: "100%",
+        maxWidth: 768,
+        flex: 1,
+        overflow: "hidden",
+        opacity: isRevealed ? 1 : 0,
+
+        pointerEvents: isRevealed ? "auto" : "none",
+        transition: "opacity 0.6s ease",
+        scrollbarWidth: "none",
+      }}
       >
-        {messages.map((msg, i) => (
+
+        {recentMessages.map((msg, i) => (
           <MessageBubble key={i} msg={msg} />
         ))}
-        {isSubmitted && (
+        {isSubmitted && !isReplyTyping && (
           <div className="flex justify-start mb-4">
             <div style={{ position: "relative" }}>
               <div style={{
@@ -1726,7 +1829,7 @@ export default function App() {
                 boxShadow: `3px 3px 0 0 ${config.orbitColor}55`,
               }}>
                 <div style={{
-                  fontFamily: "'Minecraft', monospace",
+                  fontFamily: "'JetBrains Mono', monospace",
                   fontSize: "0.5rem",
                   color: config.orbitColor,
                   letterSpacing: "0.12em",
@@ -1760,13 +1863,27 @@ export default function App() {
       </div>
 
       {/* Input area */}
-      <div className="w-full max-w-2xl px-6 pb-8 z-10">
+      <div
+      className="w-full max-w-2xl px-6 pb-8 z-20"
+      style={{
+        flexShrink: 0,
+        marginTop: "auto",
+        width: "100%",
+        maxWidth: 768,
+        opacity: inputRevealOpacity,
+        pointerEvents: isRevealed ? "auto" : "none",
+        transition: "opacity 720ms ease-out 120ms, filter 720ms ease-out 120ms",
+        filter: bootPhase >= 4 || hasConversation ? "blur(0px)" : "blur(3px)",
+      }}
+      >
+
 
         {/* Input field */}
         <div
-          className="relative flex items-center gap-3 px-5 py-4"
+          className="relative flex items-stretch gap-3 px-5 py-4"
           style={{
             background: "rgba(6,10,20,0.92)",
+            backgroundColor: "rgba(6,10,20,0.92)",
             border: `2px solid ${
               emotion === "angry"
                 ? "rgba(255,20,60,0.7)"
@@ -1780,6 +1897,12 @@ export default function App() {
                 ? `5px 5px 0 0 ${config.orbitColor}55, 0 0 16px ${config.glowColor}`
                 : `5px 5px 0 0 ${config.orbitColor}22`,
             transition: "border-color 0.4s ease, box-shadow 0.4s ease",
+            position: "relative",
+            zIndex: 2,
+            minWidth: "100%",
+            minHeight: 72,
+            width: "100%",
+            boxSizing: "border-box",
           }}
         >
           {/* Pixel corner accents */}
@@ -1787,32 +1910,52 @@ export default function App() {
           <span style={{ position: "absolute", top: -3, right: -3, width: 6, height: 6, background: config.orbitColor }} />
           <span style={{ position: "absolute", bottom: -3, left: -3, width: 6, height: 6, background: config.orbitColor }} />
           <span style={{ position: "absolute", bottom: -3, right: -3, width: 6, height: 6, background: config.orbitColor }} />
-          <input
+          <textarea
             ref={inputRef}
             value={input}
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
-            placeholder="Ask Slurm-O"
-            aria-label="Ask Slurm-O"
-            className="flex-1 bg-transparent outline-none"
+            placeholder="Ask Slurm-0"
+            aria-label="Ask Slurm-0"
+            rows={1}
+            disabled={isSubmitted || isReplyTyping}
+            className="flex-1 bg-transparent outline-none resize-none appearance-none"
             style={{
               color: "#e2e8f8",
+              backgroundColor: "transparent",
               caretColor: config.orbitColor,
-              fontFamily: "'Minecraft', monospace",
+              fontFamily: "'JetBrains Mono', monospace",
               fontSize: "0.72rem",
               letterSpacing: "0.04em",
+              lineHeight: 1.4,
+              minHeight: "100%",
+              height: "100%",
+              width: "100%",
+              border: "none",
+              boxShadow: "none",
+              paddingTop: 0,
+              paddingBottom: 0,
+              paddingLeft: 0,
+              paddingRight: 0,
+              margin: 0,
+              overflowY: "hidden",
+              alignSelf: "stretch",
+              opacity: isSubmitted || isReplyTyping ? 0.75 : 1,
+              transition: "opacity 240ms ease",
             }}
           />
 
+
           {/* Send button — pixel square, theme-colored */}
           <button
-            onClick={handleSubmit}
-            disabled={!input.trim() || isSubmitted}
-            aria-label="Send message"
-            className="flex-shrink-0 transition-all duration-300 disabled:opacity-25 disabled:cursor-not-allowed active:scale-90"
-            style={{
-              width: 38,
-              height: 38,
+          onClick={handleSubmit}
+          disabled={!input.trim() || isSubmitted || isReplyTyping}
+          aria-label="Send message"
+          className="flex-shrink-0 self-end transition-all duration-300 disabled:opacity-25 disabled:cursor-not-allowed active:scale-90"
+          style={{
+            width: 46,
+            height: 46,
+
               borderRadius: 0,
               border: `2px solid ${config.orbitColor}`,
               background: input.trim() && !isSubmitted

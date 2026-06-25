@@ -14,50 +14,37 @@
  *   const enrichedUsers = mergeGpuMetricsIntoUsers(myUsers, metrics.allUsers);
  */
 
-const CONFIGURED_ENDPOINT = import.meta.env.PUBLIC_GPU_METRICS_ENDPOINT;
-const FALLBACK_ENDPOINTS = ["/.netlify/functions/gpu-metrics", "/api/gpu-metrics.json"];
+const GPU_METRICS_ENDPOINT = "/api/gpu-metrics.json";
 
 // ─── Data Fetching ────────────────────────────────────────────────────────────
 
 export async function fetchGpuMetrics({ lookback = "7d", minHours = 5 } = {}) {
-  const endpoints = CONFIGURED_ENDPOINT ? [CONFIGURED_ENDPOINT] : FALLBACK_ENDPOINTS;
-  let lastErr = null;
+  const url = `${GPU_METRICS_ENDPOINT}?lookback=${encodeURIComponent(lookback)}&min_hours=${encodeURIComponent(String(minHours))}`;
 
-  for (const endpoint of endpoints) {
-    const url = `${endpoint}?lookback=${encodeURIComponent(lookback)}&min_hours=${encodeURIComponent(String(minHours))}`;
+  const res = await fetch(url);
+  if (!res.ok) {
+    const bodyText = await res.text().catch(() => "");
+    let detail = "";
     try {
-      const res = await fetch(url);
-      if (!res.ok) {
-        const bodyText = await res.text().catch(() => "");
-        let detail = "";
-        try {
-          const json = bodyText ? JSON.parse(bodyText) : null;
-          detail = json?.error || json?.message || "";
-        } catch {
-          detail = "";
-        }
-
-        const msgDetail = (detail || bodyText || "").trim();
-        const err = new Error(
-          msgDetail
-            ? `Failed to fetch GPU metrics: ${res.status} (${msgDetail})`
-            : `Failed to fetch GPU metrics: ${res.status}`
-        );
-        err.status = res.status;
-        throw err;
-      }
-
-      const data = await res.json();
-      if (!data?.ok) throw new Error(data?.error || data?.message || "Unknown API error");
-      return data;
-    } catch (err) {
-      lastErr = err;
-      if (!CONFIGURED_ENDPOINT && err?.status === 404) continue;
-      break;
+      const json = bodyText ? JSON.parse(bodyText) : null;
+      detail = json?.error || json?.message || "";
+    } catch {
+      detail = "";
     }
+
+    const msgDetail = (detail || bodyText || "").trim();
+    const err = new Error(
+      msgDetail
+        ? `Failed to fetch GPU metrics from ${GPU_METRICS_ENDPOINT}: ${res.status} (${msgDetail})`
+        : `Failed to fetch GPU metrics from ${GPU_METRICS_ENDPOINT}: ${res.status}`
+    );
+    err.status = res.status;
+    throw err;
   }
 
-  throw lastErr || new Error("Failed to fetch GPU metrics");
+  const data = await res.json();
+  if (!data?.ok) throw new Error(data?.error || data?.message || "Unknown API error");
+  return data;
 }
 
 /**

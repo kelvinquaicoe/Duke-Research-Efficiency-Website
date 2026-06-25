@@ -7,9 +7,3 @@
 
 [functions]
   directory = "functions-serve"
-
-[[redirects]]
-  from = "/api/gpu-metrics.json"
-  to = "/.netlify/functions/gpu-metrics"
-  status = 200
-  force = true

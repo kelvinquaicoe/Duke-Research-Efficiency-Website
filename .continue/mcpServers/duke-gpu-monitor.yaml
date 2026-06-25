@@ -1,0 +1,16 @@
+# Continue MCP server config (project-level)
+name: Duke GPU Monitor
+version: 0.0.1
+schema: v1
+
+mcpServers:
+  - name: duke-gpu-monitor
+    command: node
+    args:
+      - tools/duke-gpu-monitor-mcp/server.mjs
+    env:
+      GRAFANA_BASE_URL: ${{ secrets.GRAFANA_BASE_URL }}
+      GRAFANA_TOKEN: ${{ secrets.GRAFANA_TOKEN }}
+      PROMETHEUS_BASE_URL: ${{ secrets.PROMETHEUS_BASE_URL }}
+      PROMETHEUS_TOKEN: ${{ secrets.PROMETHEUS_TOKEN }}
+

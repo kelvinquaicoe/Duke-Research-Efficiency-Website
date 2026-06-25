@@ -1,16 +1,31 @@
 import React, { useState, useEffect } from 'react';
 
+const configuredChatbotUrl = (import.meta.env.PUBLIC_CHATBOT_URL || '').trim();
+
+const getDefaultChatbotUrl = () => {
+  if (typeof window === 'undefined') return '';
+
+  const { hostname, origin } = window.location;
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    return 'http://localhost:5000/';
+  }
+
+  return `${origin}/chatbot/`;
+};
+
 export default function ChatbotWidget() {
   const [isOpen, setIsOpen] = useState(false);
   const [showConfirmClose, setShowConfirmClose] = useState(false);
   const [width, setWidth] = useState(400);
   const [height, setHeight] = useState(600);
   const [isResizing, setIsResizing] = useState(false);
+  const [chatbotUrl, setChatbotUrl] = useState('');
 
   // Ensure widget is mounted on client
   const [isMounted, setIsMounted] = useState(false);
   useEffect(() => {
     setIsMounted(true);
+    setChatbotUrl(configuredChatbotUrl || getDefaultChatbotUrl());
   }, []);
 
   const handleToggle = () => {
@@ -67,7 +82,7 @@ export default function ChatbotWidget() {
       {/* Floating Chatbot Button - Sticky */}
       <button
         onClick={handleToggle}
-        className="fixed bottom-6 right-6 z-50 flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95"
+        className="chatbot-toggle-btn"
         style={{
           width: 56,
           height: 56,
@@ -77,8 +92,23 @@ export default function ChatbotWidget() {
           cursor: 'pointer',
           boxShadow: '0 4px 20px rgba(0, 199, 255, 0.4)',
           position: 'fixed',
+          bottom: '24px',
+          right: '24px',
+          zIndex: 60,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          transition: 'transform 0.2s ease, box-shadow 0.2s ease',
         }}
         title="Chat with Slurm-O"
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = 'scale(1.08)';
+          e.currentTarget.style.boxShadow = '0 8px 28px rgba(0, 199, 255, 0.5)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'scale(1)';
+          e.currentTarget.style.boxShadow = '0 4px 20px rgba(0, 199, 255, 0.4)';
+        }}
       >
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
@@ -152,7 +182,7 @@ export default function ChatbotWidget() {
 
           {/* Chatbot Iframe */}
           <iframe
-            src="http://localhost:5000/"
+            src={chatbotUrl || 'about:blank'}
             style={{
               flex: 1,
               border: 'none',

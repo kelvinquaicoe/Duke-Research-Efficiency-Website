@@ -7,6 +7,13 @@ import Layout from '../layouts/Layout.astro';
     <h1>Research Efficiency</h1>
     <p>Starter site is live and deploying from GitLab CI/CD.</p>
     <p class="hint">Replace this page under <code>src/pages/</code> with the real content.</p>
+
+    <div class="evil-eye" role="img" aria-label="A blinking evil eye">
+      <div class="eyeball">
+        <div class="iris"><div class="pupil"></div></div>
+        <div class="lid"></div>
+      </div>
+    </div>
   </main>
 </Layout>
 
@@ -27,5 +34,83 @@ import Layout from '../layouts/Layout.astro';
     background: rgba(255, 255, 255, 0.1);
     padding: 0.1rem 0.35rem;
     border-radius: 0.25rem;
+  }
+
+  /* ---- Blinking evil eye -------------------------------------------------- */
+  .evil-eye {
+    --eye-w: 200px;
+    --eye-h: 110px;
+    margin: 2.75rem auto 0;
+    width: var(--eye-w);
+    height: var(--eye-h);
+    display: grid;
+    place-items: center;
+  }
+  .eyeball {
+    position: relative;
+    width: var(--eye-w);
+    height: var(--eye-h);
+    border-radius: 50%;
+    overflow: hidden;
+    background: radial-gradient(ellipse at center, #ffffff 58%, #ffd9d9 100%);
+    box-shadow:
+      0 0 22px 4px rgba(255, 30, 30, 0.55),
+      inset 0 0 22px rgba(120, 0, 0, 0.35);
+    animation: glow 2.4s ease-in-out infinite;
+  }
+  .iris {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 78px;
+    height: 78px;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: radial-gradient(circle at 50% 38%, #ff5a3c 0%, #c1121f 46%, #5c0000 100%);
+    box-shadow: 0 0 14px rgba(255, 60, 30, 0.9);
+    animation: look 5s ease-in-out infinite;
+  }
+  .pupil {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 16px;
+    height: 64px; /* vertical reptilian slit */
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: #0a0000;
+    box-shadow: inset 0 0 6px #000;
+  }
+  /* eyelid that snaps shut to make the blink */
+  .lid {
+    position: absolute;
+    inset: 0;
+    background: var(--bg);
+    transform: scaleY(0);
+    transform-origin: center;
+    animation: blink 4s ease-in-out infinite;
+  }
+
+  @keyframes blink {
+    0%, 88%, 100% { transform: scaleY(0); }   /* eye open */
+    92%, 94%      { transform: scaleY(1.05); } /* eye shut */
+  }
+  @keyframes glow {
+    0%, 100% {
+      box-shadow: 0 0 18px 3px rgba(255, 30, 30, 0.45), inset 0 0 22px rgba(120, 0, 0, 0.35);
+    }
+    50% {
+      box-shadow: 0 0 34px 8px rgba(255, 30, 30, 0.85), inset 0 0 26px rgba(150, 0, 0, 0.5);
+    }
+  }
+  @keyframes look {
+    0%, 100% { transform: translate(-50%, -50%); }
+    35%      { transform: translate(-72%, -50%); }
+    65%      { transform: translate(-28%, -50%); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .eyeball, .iris, .lid { animation: none; }
+    .lid { transform: scaleY(0); }
   }
 </style>

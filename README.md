@@ -1,24 +1,38 @@
 # reseff_website
 
-Astro + React website for Research Efficiency (reseff.cs.duke.edu).
+Astro site for the Research Efficiency / Cluster_cmd project.
 
-## Requirements
+## Development
 
-- Node `22.12.0` (see `.nvmrc`)
-- npm (ships with Node)
+```sh
+npm install
+npm run dev
+```
 
-## Local development
+## Build and preview
 
-- Install: `npm ci`
-- Dev server: `npm run dev`
-- Production build: `npm run build` (outputs `dist/`)
-- Preview build: `npm run preview`
+```sh
+npm run build
+npm run preview
+```
+
+## Project layout
+
+- `src/pages/` — pages and API routes
+- `src/components/` — shared UI pieces
+- `src/layouts/` — site layout and global styles
+- `src/game/` — embedded React game app
+- `public/` — static assets
 
 ## Deployment
 
-Primary production deployment is via GitLab CI:
+- Production build output: `dist/`
+- Host: `reseff.cs.duke.edu`
+- The site is deployed as a static Astro build on the main server.
+- See `DEPLOYMENT.md` for the current deployment workflow.
 
-- Pipeline builds `dist/` with Node 22 and then `rsync`s it to `reseff.cs.duke.edu`.
-- Required CI/CD variables are documented in `.gitlab-ci.yml`.
+## Notes
 
-See `DEPLOYMENT.md` for details and notes about the live metrics endpoint.
+- The chatbot widget loads from `/chatbot/` by default.
+- Set `PUBLIC_CHATBOT_URL` to override the chatbot location if needed.
+- The embedded game uses React components, so Astro React integration is enabled in `astro.config.mjs`.

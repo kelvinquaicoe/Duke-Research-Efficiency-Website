@@ -1317,19 +1317,29 @@ export default function App() {
     if (appState !== "open") return;
     let active = true;
 
-    fetch("/api/cluster-brief")
-      .then((res) => (res.ok ? res.json() : Promise.reject(new Error("bad response"))))
-      .then((data: { brief?: string }) => {
-        if (!active) return;
-        const brief = typeof data.brief === "string" ? data.brief : "";
-        setClusterBrief(brief || "Ask about jobs, GPUs, queue status, or anything else.");
-        setClusterLoad(parseClusterLoad(brief));
-      })
-      .catch(() => {
-        if (!active) return;
-        setClusterBrief("Ask about jobs, GPUs, queue status, or anything else.");
-        setClusterLoad(null);
-      });
+    const endpoints = ["/api/cluster-brief", "/.netlify/functions/cluster-brief"];
+
+    (async () => {
+      for (const endpoint of endpoints) {
+        try {
+          const res = await fetch(endpoint, { cache: "no-store" });
+          const data = (await res.json().catch(() => null)) as { brief?: string } | null;
+          if (!res.ok) throw new Error("bad response");
+
+          const brief = typeof data?.brief === "string" ? data.brief : "";
+          if (!active) return;
+          setClusterBrief(brief || "Ask about jobs, GPUs, queue status, or anything else.");
+          setClusterLoad(parseClusterLoad(brief));
+          return;
+        } catch {
+          // Try the next endpoint.
+        }
+      }
+
+      if (!active) return;
+      setClusterBrief("Ask about jobs, GPUs, queue status, or anything else.");
+      setClusterLoad(null);
+    })();
 
     return () => {
       active = false;

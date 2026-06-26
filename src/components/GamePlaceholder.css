@@ -1,0 +1,60 @@
+.game-placeholder-wrapper {
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+.game-placeholder-frame {
+  overflow: hidden;
+  background: #050a14;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.18);
+  width: 100%;
+  height: 100vh; 
+}
+
+.game-placeholder-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-content: center;
+  gap: 0.6rem;
+  text-align: center;
+  background: radial-gradient(ellipse 70% 50% at 30% 40%, #0d2044 0%, #050a14 65%);
+  transition: opacity 220ms ease;
+}
+
+.game-placeholder-loading-title {
+  font-family: "Orbitron", sans-serif;
+  letter-spacing: 0.08em;
+  font-size: 1rem;
+  color: #53d5fd;
+}
+
+.game-placeholder-loading-subtitle {
+  font-family: "Inter", sans-serif;
+  font-size: 0.82rem;
+  color: #64748b;
+}
+
+.game-placeholder-content {
+  position: relative;
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 260ms ease;
+}
+
+.game-placeholder-frame.is-ready .game-placeholder-loading {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.game-placeholder-frame.is-ready .game-placeholder-content {
+  opacity: 1;
+}
+
+@media (max-width: 900px) {
+  .game-placeholder-frame {
+    min-height: 560px;
+  }
+}

@@ -1,0 +1,219 @@
+---
+const configuredChatbotUrl = (import.meta.env.PUBLIC_CHATBOT_URL || '').trim();
+const baseUrl = import.meta.env.BASE_URL || '/';
+const defaultChatbotUrl = configuredChatbotUrl || `${baseUrl}chatbot/`;
+---
+
+<button
+  id="chatbot-toggle"
+  title="Chat with Slurm-O"
+  aria-label="Open chatbot"
+  data-chatbot-url={defaultChatbotUrl}
+>
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" aria-hidden="true">
+    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+  </svg>
+</button>
+
+<div id="chatbot-modal" hidden>
+  <div id="chatbot-header">
+    <h3>Slurm<span>-O</span> AI</h3>
+    <button id="chatbot-close" aria-label="Close chatbot">x</button>
+  </div>
+  <iframe id="chatbot-frame" src="about:blank" title="Slurm-O Chatbot"></iframe>
+</div>
+
+
+<script is:inline>
+  const toggleBtn = document.getElementById('chatbot-toggle');
+  const modal = document.getElementById('chatbot-modal');
+  const frame = document.getElementById('chatbot-frame');
+  const closeBtn = document.getElementById('chatbot-close');
+
+  const chatbotUrl = toggleBtn?.dataset?.chatbotUrl || '/chatbot/';
+  frame.src = chatbotUrl;
+
+  const openModal = () => {
+    modal.hidden = false;
+  };
+
+  const closeModal = () => {
+    modal.hidden = true;
+  };
+
+
+  toggleBtn?.addEventListener('click', () => {
+    if (modal.hidden) {
+      openModal();
+    } else {
+      closeModal();
+    }
+  });
+
+
+  closeBtn?.addEventListener('click', closeModal);
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape') return;
+    if (!modal.hidden) {
+      closeModal();
+    }
+  });
+
+  // Resize handle behavior for the bottom-right corner.
+  const handle = document.createElement('div');
+  handle.id = 'chatbot-resize-handle';
+  modal.appendChild(handle);
+
+  let isResizing = false;
+  let startX = 0;
+  let startY = 0;
+  let startWidth = 400;
+  let startHeight = 600;
+  const modalAspectRatio = 2 / 3;
+
+  handle.addEventListener('mousedown', (event) => {
+    if (event.button !== 0) return;
+    isResizing = true;
+    startX = event.clientX;
+    startY = event.clientY;
+    startWidth = modal.offsetWidth;
+    startHeight = modal.offsetHeight;
+    event.preventDefault();
+  });
+
+  document.addEventListener('mousemove', (event) => {
+    if (!isResizing) return;
+    const width = Math.max(300, startWidth + (event.clientX - startX));
+    const height = Math.max(400, width / modalAspectRatio);
+    modal.style.width = `${width}px`;
+    modal.style.height = `${height}px`;
+  });
+
+  document.addEventListener('mouseup', () => {
+    isResizing = false;
+  });
+</script>
+
+<style>
+  #chatbot-toggle {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #00c7ff 0%, #0096b4 100%);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(0, 199, 255, 0.4);
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  #chatbot-toggle:hover {
+    transform: scale(1.08);
+    box-shadow: 0 8px 28px rgba(0, 199, 255, 0.5);
+  }
+
+  #chatbot-modal {
+    position: fixed;
+    bottom: 80px;
+    right: 24px;
+    width: 400px;
+    height: 600px;
+    max-width: calc(100vw - 24px);
+    max-height: calc(100vh - 120px);
+    aspect-ratio: 2 / 3;
+    background: #050810;
+    border-radius: 12px;
+    border: 2px solid rgba(0, 199, 255, 0.3);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 199, 255, 0.2);
+    z-index: 1001;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: chatbot-modal-in 0.22s ease-out forwards;
+  }
+
+  @keyframes chatbot-modal-in {
+    from { opacity: 0; transform: translateY(14px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  #chatbot-modal[hidden] {
+    display: none !important;
+  }
+
+  #chatbot-header {
+    background: linear-gradient(135deg, rgba(0, 199, 255, 0.1) 0%, rgba(0, 150, 180, 0.05) 100%);
+    border-bottom: 1px solid rgba(0, 199, 255, 0.2);
+    padding: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  #chatbot-header h3 {
+    margin: 0;
+    font-family: "Orbitron", sans-serif;
+    color: #e2e8f8;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+  }
+
+  #chatbot-header h3 span {
+    color: #00c7ff;
+  }
+
+  #chatbot-close {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 24px;
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    line-height: 1;
+  }
+
+  #chatbot-close:hover {
+    color: #ff4b4b;
+  }
+
+  #chatbot-frame {
+    flex: 1;
+    border: none;
+  }
+
+
+  #chatbot-resize-handle {
+    width: 20px;
+    height: 20px;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    cursor: nwse-resize;
+    background: linear-gradient(135deg, transparent 0%, rgba(0, 199, 255, 0.3) 100%);
+    border-radius: 0 0 10px 0;
+  }
+
+  @media (max-width: 768px) {
+    #chatbot-modal {
+      right: 12px;
+      left: 12px;
+      width: auto;
+      bottom: 12px;
+      height: min(calc((100vw - 24px) * 1.5), calc(100vh - 24px));
+      max-height: calc(100vh - 24px);
+    }
+
+    #chatbot-resize-handle {
+      display: none;
+    }
+  }
+</style>

@@ -14,6 +14,13 @@ const { title = 'Research Efficiency' } = Astro.props;
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="generator" content={Astro.generator} />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Orbitron:wght@500;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="icon" href="/favicon.ico" />
     <title>{title}</title>
   </head>
   <body>
@@ -24,10 +31,10 @@ const { title = 'Research Efficiency' } = Astro.props;
 
 <style is:global>
   :root {
-    --bg: #0b132b;
+    --bg: #0a0e14;
     --fg: #f5f7fa;
     --accent: #5bc0be;
-    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   }
 
   * {

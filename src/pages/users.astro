@@ -1,0 +1,698 @@
+---
+import Layout from '../layouts/Layout.astro';
+import SiteHeader from '../components/SiteHeader.astro';
+
+type GpuUser = {
+  user: string;
+  avgUtilPct: number | null;
+  gpuHoursAlloc: number | null;
+  gpuHoursEffective: number | null;
+  gpuHoursWasted?: number | null;
+};
+
+type GpuMetricsResponse =
+  | {
+      ok: true;
+      fetchedAt: string;
+      allUsers: GpuUser[];
+    }
+  | {
+      ok: false;
+      error: string;
+    };
+
+---
+
+<Layout>
+  <SiteHeader context="users" />
+
+  <main class="users-main">
+    <section class="users-section">
+
+      <!-- SECTION HEADER -->
+      <div class="section-header">
+        <div class="section-header-top">
+          <div>
+            <h2>User Roster</h2>
+            <p class="section-description">Search and filter all users by efficiency, GPU hours, effective GPU hours, game bonus, and status. Click any row to expand their profile.</p>
+          </div>
+          <span class="live-badge gold">Live Roster</span>
+        </div>
+
+        <!-- CONTROLS -->
+        <div class="controls">
+          <div class="search-wrap">
+            <span class="search-icon">⌕</span>
+            <input class="search-input" id="search" placeholder="Search users..." />
+          </div>
+          <select class="sort-select" id="sort">
+            <option value="eff-desc">Efficiency: High → Low</option>
+            <option value="eff-asc">Efficiency: Low → High</option>
+            <option value="gpu-desc">GPU Hours: High → Low</option>
+            <option value="effhrs-desc">Wasted Hrs: High → Low</option>
+            <option value="name-asc">User: A → Z</option>
+          </select>
+          <span class="count-text" id="count">—</span>
+        </div>
+      </div>
+
+      <!-- PROFILE PANEL -->
+      <div class="profile-panel" id="profile-panel">
+        <div class="pp-hdr">
+          <div>
+            <div class="pp-name" id="pp-name">—</div>
+            <div class="pp-meta" id="pp-meta">RANK #— · —</div>
+          </div>
+          <button class="pp-close" id="pp-close">✕ CLOSE</button>
+        </div>
+        <div class="pp-stats">
+          <div class="pp-stat">
+            <div class="pp-stat-lbl">Efficiency</div>
+            <div class="pp-stat-val" id="pp-eff">—</div>
+            <div class="pp-stat-sub">avg GPU utilization</div>
+          </div>
+          <div class="pp-stat">
+            <div class="pp-stat-lbl">GPU Hrs</div>
+            <div class="pp-stat-val" id="pp-gpu">—</div>
+            <div class="pp-stat-sub">allocated</div>
+          </div>
+          <div class="pp-stat">
+            <div class="pp-stat-lbl">Game Bonus</div>
+            <div class="pp-stat-val" id="pp-game">—</div>
+            <div class="pp-stat-sub">earned bonus points</div>
+          </div>
+          <div class="pp-stat">
+            <div class="pp-stat-lbl">Wasted</div>
+            <div class="pp-stat-val" id="pp-score">—</div>
+            <div class="pp-stat-sub">alloc − effective</div>
+          </div>
+        </div>
+        <div class="pp-footer">
+          <span class="pp-active-text">Data as of: <strong id="pp-last">—</strong></span>
+          <button class="pp-btn">VIEW FULL PROFILE →</button>
+        </div>
+      </div>
+
+      <section class="gpu-leaderboard-section">
+        <h3>GPU Cluster Leaderboard</h3>
+        <div id="gpu-metrics-root"></div>
+      </section>
+
+      <!-- TABLE -->
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th class="th-left">User</th>
+              <th>Efficiency</th>
+              <th>GPU Hrs</th>
+              <th>Wasted Hrs</th>
+              <th>Game Bonus</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+
+
+    </section>
+  </main>
+</Layout>
+
+<script>
+  import { initGpuMetrics } from '../components/GpuMetrics.js';
+
+  /** @type {Array<{user:string, avgUtilPct:number|null, gpuHoursAlloc:number|null, gpuHoursEffective:number|null, gpuHoursWasted?:number|null}>} */
+  let liveUsers = [];
+  let fetchedAt = null;
+
+  const rankEmoji = (r) => (r === 1 ? '🏆' : r === 2 ? '🥈' : r === 3 ? '🥉' : String(r));
+const rankPalette = (rank, maxRank) => {
+  // Match leader/loser board bar styling:
+  // - top 5: teal
+  // - bottom 5: red
+  // - everyone else: gold
+  if (rank <= 5) return { text: '#53d5fd', a: '#53d5fd', b: '#b6eeff' };
+  if (rank > maxRank - 5) return { text: '#ef4444', a: '#ef4444', b: '#fca5a5' };
+  return { text: '#d5ad4d', a: '#d5ad4d', b: '#ffebaf' };
+};
+
+let filtered   = [...liveUsers];
+let activeRank = null;
+
+function renderTable() {
+  const tbody = document.getElementById('tbody');
+  tbody.innerHTML = '';
+  filtered.forEach((u, idx) => {
+    const rank = idx + 1;
+    const tr  = document.createElement('tr');
+    const pal = rankPalette(rank, filtered.length);
+    if (activeRank === rank) tr.classList.add('active-row');
+
+    const eff = u.avgUtilPct;
+    const effText = eff !== null && Number.isFinite(eff) ? eff.toFixed(1) : '—';
+    const effWidth = eff !== null && Number.isFinite(eff) ? `${Math.max(0, Math.min(100, eff))}%` : '0%';
+
+    const alloc = u.gpuHoursAlloc;
+    const allocText = alloc !== null && Number.isFinite(alloc) ? `${alloc.toFixed(1)}h` : '—';
+
+    const effective = u.gpuHoursEffective;
+    const wasted = u.gpuHoursWasted ?? (alloc !== null && effective !== null ? alloc - effective : null);
+    const wastedText = wasted !== null && Number.isFinite(wasted) ? `${wasted.toFixed(1)}h` : '—';
+
+    const bonus = getGameBonus(u);
+    const status = getStatusInfo(u);
+
+    tr.innerHTML = `
+      <td class="rank-cell">${rankEmoji(rank)}</td>
+      <td class="name-cell">${u.user}</td>
+      <td>
+        <div class="eff-cell">
+          <span class="eff-num" style="color:${pal.text}">${effText}</span>
+          <div class="ebar"><div class="efill" data-width="${effWidth}" style="width:0;--fill-a:${pal.a};--fill-b:${pal.b}"></div></div>
+        </div>
+      </td>
+      <td class="dim-cell">${allocText}</td>
+      <td class="dim-cell">${wastedText}</td>
+      <td class="bonus-cell">+${bonus.toLocaleString()}</td>
+      <td><span class="status-pill status-${status.className}" aria-label="${status.label}" title="${status.label}">${status.label}</span></td>
+    `;
+    tr.addEventListener('click', () => openProfile(u, rank));
+    tbody.appendChild(tr);
+  });
+
+  // Kick off bar transitions after DOM insertion so they animate like the leader/loser boards.
+  requestAnimationFrame(() => {
+    tbody.querySelectorAll('.efill').forEach((bar) => {
+      bar.style.width = bar.dataset.width || '0%';
+    });
+  });
+
+  document.getElementById('count').textContent =
+    `${filtered.length} of ${liveUsers.length} users`;
+}
+
+function getGameBonus(u) {
+  const eff = u.avgUtilPct ?? 0;
+  const alloc = u.gpuHoursAlloc ?? 0;
+  const effective = u.gpuHoursEffective ?? 0;
+  const wasted = Math.max(0, u.gpuHoursWasted ?? (alloc - effective));
+
+  const efficiencyReward = Math.round(eff * 4);
+  const throughputReward = Math.round(effective * 3);
+  const queueReliefReward = alloc >= 80 ? 250 : alloc >= 50 ? 160 : alloc >= 25 ? 100 : 50;
+  const savingsReward = Math.max(0, 180 - Math.round(wasted * 2));
+  const achievementBonus = eff >= 95 ? 250 : eff >= 90 ? 150 : eff >= 85 ? 100 : eff >= 80 ? 50 : 0;
+
+  return efficiencyReward + throughputReward + queueReliefReward + savingsReward + achievementBonus;
+}
+
+function getStatusInfo(u) {
+  const eff = u.avgUtilPct ?? 0;
+  const alloc = u.gpuHoursAlloc ?? 0;
+  const effective = u.gpuHoursEffective ?? 0;
+  const wasted = Math.max(0, u.gpuHoursWasted ?? (alloc - effective));
+
+  if (eff >= 90 && wasted < 12) return { label: '🔥 BLAZING', className: 'blazing' };
+  if (eff >= 80 && wasted < 20) return { label: '⚡ CRUISING', className: 'cruising' };
+  if (wasted >= 35 || eff < 60) return { label: '🚨 CONGESTING', className: 'congesting' };
+  return { label: '🐌 IDLING', className: 'idling' };
+}
+
+function openProfile(u, rank) {
+  if (activeRank === rank) { closeProfile(); return; }
+  activeRank = rank;
+
+  const eff = u.avgUtilPct;
+  const alloc = u.gpuHoursAlloc;
+  const effective = u.gpuHoursEffective;
+  const wasted = u.gpuHoursWasted ?? (alloc !== null && effective !== null ? alloc - effective : null);
+  const bonus = getGameBonus(u);
+  const status = getStatusInfo(u);
+
+  document.getElementById('pp-name').textContent = u.user;
+  document.getElementById('pp-meta').textContent = `RANK #${rank} · ${status.label} · +${bonus.toLocaleString()}`;
+  document.getElementById('pp-eff').textContent =
+    eff !== null && Number.isFinite(eff) ? eff.toFixed(1) + '%' : '—';
+  document.getElementById('pp-gpu').textContent =
+    alloc !== null && Number.isFinite(alloc) ? alloc.toFixed(1) + 'h' : '—';
+  document.getElementById('pp-game').textContent =
+    bonus !== null && Number.isFinite(bonus) ? bonus.toLocaleString() : '—';
+  document.getElementById('pp-score').textContent =
+    wasted !== null && Number.isFinite(wasted) ? wasted.toFixed(1) + 'h' : '—';
+  document.getElementById('pp-last').textContent =
+    fetchedAt ? new Date(fetchedAt).toLocaleString() : '—';
+  document.getElementById('profile-panel').classList.add('open');
+  renderTable();
+}
+
+function closeProfile() {
+  activeRank = null;
+  document.getElementById('profile-panel').classList.remove('open');
+  renderTable();
+}
+
+document.getElementById('pp-close').addEventListener('click', closeProfile);
+
+document.getElementById('search').addEventListener('input', e => {
+  const q = e.target.value.toLowerCase();
+  filtered = liveUsers.filter(u => u.user.toLowerCase().includes(q));
+  renderTable();
+});
+
+document.getElementById('sort').addEventListener('change', e => {
+  const v = e.target.value;
+  const numOrNeg = (n) => (n === null || !Number.isFinite(n) ? -1 : n);
+  if (v === 'eff-desc')     filtered.sort((a,b) => numOrNeg(b.avgUtilPct) - numOrNeg(a.avgUtilPct));
+  if (v === 'eff-asc')      filtered.sort((a,b) => numOrNeg(a.avgUtilPct) - numOrNeg(b.avgUtilPct));
+  if (v === 'gpu-desc')     filtered.sort((a,b) => numOrNeg(b.gpuHoursAlloc) - numOrNeg(a.gpuHoursAlloc));
+  if (v === 'effhrs-desc')  filtered.sort((a,b) => {
+    const wastedA = a.gpuHoursWasted ?? ((a.gpuHoursAlloc ?? 0) - (a.gpuHoursEffective ?? 0));
+    const wastedB = b.gpuHoursWasted ?? ((b.gpuHoursAlloc ?? 0) - (b.gpuHoursEffective ?? 0));
+    return numOrNeg(wastedB) - numOrNeg(wastedA);
+  });
+  if (v === 'name-asc')     filtered.sort((a,b) => a.user.localeCompare(b.user));
+  renderTable();
+});
+
+async function loadLiveUsers() {
+  const tbody = document.getElementById('tbody');
+  tbody.innerHTML = `<tr><td colspan="7" class="dim-cell">Loading live data…</td></tr>`;
+
+  try {
+    const response = await fetch('/api/gpu-metrics.json');
+    const data = await response.json();
+    if (!response.ok || !data?.ok) throw new Error(data?.error || `Request failed (${response.status})`);
+
+    liveUsers = data.allUsers || [];
+    fetchedAt = data.fetchedAt || null;
+    filtered = [...liveUsers];
+    renderTable();
+  } catch (error) {
+    tbody.innerHTML = `<tr><td colspan="7" class="dim-cell">Could not load live data.</td></tr>`;
+    document.getElementById('count').textContent = '0 users';
+  }
+}
+
+renderTable();
+loadLiveUsers();
+
+initGpuMetrics({
+  mountId: 'gpu-metrics-root',
+  lookback: '7d',
+  minHours: 5
+});
+</script>
+
+<style>
+  /* ── MAIN — matches your existing background ── */
+  .users-main {
+    margin: 0;
+    min-height: 100vh;
+    background:
+      radial-gradient(circle at top, rgba(83,213,253,0.12), transparent 35%),
+      radial-gradient(circle at bottom right, rgba(213,173,77,0.1), transparent 30%),
+      #111;
+  }
+  .users-section {
+    padding: 3rem 2rem;
+    max-width: 1100px;
+    margin: 0 auto;
+    color: #e5f7ff;
+  }
+
+  /* ── SECTION HEADER — matches your existing card style ── */
+  .section-header {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding: 1.5rem;
+    border: 1px solid rgba(83,213,253,0.28);
+    border-radius: 24px;
+    background: #061318;
+    box-shadow: 0 0 24px rgba(83,213,253,0.12);
+  }
+  .section-header-top {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1.5rem;
+  }
+  .section-eyebrow {
+    margin: 0 0 0.6rem;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.78rem;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: #d5ad4d;
+  }
+  .section-header h2 {
+    margin: 0 0 0.5rem;
+    font-size: 2rem;
+    font-family: 'Orbitron', sans-serif;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #53d5fd;
+    text-shadow: 0 0 8px rgba(83,213,253,0.6), 0 0 18px rgba(83,213,253,0.18);
+  }
+  .section-description {
+    margin: 0;
+    color: #cbd5e1;
+    font-size: 1rem;
+    max-width: 40rem;
+    line-height: 1.7;
+  }
+  .live-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.45rem 0.9rem;
+    border: 1px solid #53d5fd;
+    color: #53d5fd;
+    border-radius: 999px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.74rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    box-shadow: 0 0 12px rgba(83,213,253,0.25);
+    white-space: nowrap;
+  }
+  .live-badge::before {
+    content: "";
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+    box-shadow: 0 0 10px currentColor;
+    animation: pulse 1.5s infinite;
+  }
+  .live-badge.gold {
+    border-color: #d5ad4d;
+    color: #d5ad4d;
+    box-shadow: 0 0 12px rgba(213,173,77,0.25);
+  }
+
+  /* ── CONTROLS ── */
+  .controls {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    flex-wrap: nowrap;
+    width: 100%;
+    min-width: 0;
+    margin-bottom: 0;
+  }
+  .search-wrap {
+    position: relative;
+    flex: 1 1 0;
+    min-width: 0;
+    max-width: none;
+  }
+  .search-icon {
+    position: absolute;
+    left: 10px; top: 50%;
+    transform: translateY(-50%);
+    font-size: 12px;
+    color: #3a5a6a;
+  }
+  .search-input {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    background: #061318;
+    border: 1px solid rgba(83,213,253,0.2);
+    border-radius: 8px;
+    padding: 8px 12px 8px 30px;
+    font-size: 0.8rem;
+    color: #e2e8f0;
+    font-family: 'Orbitron', sans-serif;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .search-input:focus { border-color: rgba(83,213,253,0.5); }
+  .search-input::placeholder { color: #2a4a5a; }
+  .sort-select {
+    flex: 0 0 18rem;
+    width: 18rem;
+    min-width: 18rem;
+    max-width: 18rem;
+    box-sizing: border-box;
+    background: #061318;
+    border: 1px solid rgba(83,213,253,0.2);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 0.75rem;
+    color: #94a3b8;
+    font-family: 'Orbitron', sans-serif;
+    outline: none;
+  }
+  .count-text {
+    flex: 0 0 auto;
+    margin-left: auto;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.7rem;
+    color: #3a5a6a;
+    letter-spacing: 0.1em;
+    white-space: nowrap;
+  }
+
+  /* ── PROFILE PANEL ── */
+  .profile-panel {
+    display: none;
+    margin-bottom: 1rem;
+    background: #061318;
+    border: 1px solid rgba(83,213,253,0.28);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 0 24px rgba(83,213,253,0.08);
+  }
+  .profile-panel.open { display: block; }
+  .pp-hdr {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid rgba(83,213,253,0.1);
+    background: rgba(83,213,253,0.03);
+  }
+  .pp-name {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #53d5fd;
+    text-shadow: 0 0 8px rgba(83,213,253,0.4);
+    margin-bottom: 3px;
+  }
+  .pp-meta {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.65rem;
+    color: #d5ad4d;
+    letter-spacing: 0.15em;
+  }
+  .pp-close {
+    background: transparent;
+    border: 1px solid rgba(83,213,253,0.2);
+    color: #3a5a6a;
+    font-size: 0.7rem;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: 'Orbitron', sans-serif;
+    letter-spacing: 0.08em;
+    transition: all 0.2s;
+  }
+  .pp-close:hover { color: #53d5fd; border-color: rgba(83,213,253,0.5); }
+  .pp-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: rgba(83,213,253,0.08);
+  }
+  .pp-stat { background: #061318; padding: 1.25rem 1.5rem; }
+  .pp-stat-lbl {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.6rem;
+    letter-spacing: 0.18em;
+    color: #d5ad4d;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+  .pp-stat-val {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #f8fafc;
+    line-height: 1;
+    margin-bottom: 0.3rem;
+    text-shadow: 0 0 12px rgba(83,213,253,0.2);
+  }
+  .pp-stat-sub { font-size: 0.7rem; color: #3a5a6a; }
+  .pp-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.85rem 1.5rem;
+    border-top: 1px solid rgba(83,213,253,0.08);
+  }
+  .pp-active-text { font-size: 0.72rem; color: #3a5a6a; }
+  .pp-active-text strong { color: #53d5fd; }
+  .pp-btn {
+    background: #53d5fd;
+    color: #061318;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    font-family: 'Orbitron', sans-serif;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: box-shadow 0.2s;
+  }
+  .pp-btn:hover { box-shadow: 0 0 20px rgba(83,213,253,0.5); }
+
+  /* ── TABLE ── */
+  .table-wrap {
+    background: #061318;
+    border: 1px solid rgba(83,213,253,0.28);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 0 24px rgba(83,213,253,0.08);
+    color: #b6eeff;
+  }
+  .table-wrap :global(table) { width: 100%; border-collapse: collapse; }
+  thead th {
+    padding: 0.9rem 1.25rem;
+    text-align: center;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    color: #53d5fd;
+    background: rgba(83,213,253,0.06);
+    border-bottom: 1px solid rgba(83,213,253,0.12);
+    text-transform: uppercase;
+  }
+  .th-left { text-align: left; }
+  .table-wrap :global(tbody tr) {
+    border-bottom: 1px solid rgba(83,213,253,0.06);
+    cursor: pointer;
+    transition: background 0.15s, transform 0.15s;
+  }
+  .table-wrap :global(tbody tr:hover) { background: rgba(83,213,253,0.05); transform: translateY(-1px); }
+  .table-wrap :global(tbody tr.active-row) {
+    background: rgba(83,213,253,0.08);
+    border-left: 2px solid #53d5fd;
+  }
+  .table-wrap :global(tbody tr:last-child) { border-bottom: none; }
+  .table-wrap :global(td) {
+    padding: 1rem 1.25rem;
+    text-align: center;
+    vertical-align: middle;
+    color: #b6eeff;
+    font-size: 0.85rem;
+  }
+  .table-wrap :global(.rank-cell) { font-size: 1rem; font-weight: 700; color: #d5ad4d; width: 52px; }
+  .table-wrap :global(.name-cell) { text-align: left; font-weight: 600; color: #e2e8f0; font-family: 'Orbitron', sans-serif; font-size: 0.75rem; letter-spacing: 0.05em; }
+  .table-wrap :global(.eff-cell) { display: flex; align-items: center; gap: 8px; justify-content: center; }
+  .table-wrap :global(.eff-num) { font-weight: 700; width: 28px; text-align: right; font-family: 'Orbitron', sans-serif; }
+  /* efficiency bars — styled to match leader/loser board bars */
+  .table-wrap :global(.ebar) {
+    width: 120px;
+    height: 8px;
+    background: rgba(255,255,255,.08);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .table-wrap :global(.efill) {
+    height: 100%;
+    width: 0;
+    background: linear-gradient(90deg, var(--fill-a, #53d5fd), var(--fill-b, #b6eeff));
+    border-radius: 999px;
+    box-shadow: 0 0 12px var(--fill-a, #53d5fd);
+    transition: width 1.6s ease-out;
+    position: relative;
+    overflow: hidden;
+  }
+  .table-wrap :global(.efill::after) {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: rgba(255,255,255,.35);
+    animation: sweep 2.5s infinite;
+  }
+  .table-wrap :global(.dim-cell) { color: #7c98a9; }
+  .table-wrap :global(.bonus-cell) { color: #d5ad4d; font-weight: 700; }
+  .table-wrap :global(.empty-cell) { color: #456474; }
+  .table-wrap :global(.score-cell) { color: #f8fafc; font-weight: 700; font-family: 'Orbitron', sans-serif; }
+
+  .table-wrap :global(.status-pill) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 5.25rem;
+    padding: 0.28rem 0.75rem;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    box-shadow: 0 0 10px rgba(0,0,0,0.18);
+    vertical-align: middle;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.62rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .table-wrap :global(.status-pill.status-blazing) {
+    background: linear-gradient(180deg, rgba(239,68,68,0.28), rgba(239,68,68,0.12));
+    border-color: rgba(239,68,68,0.35);
+    box-shadow: 0 0 14px rgba(239,68,68,0.22);
+  }
+  .table-wrap :global(.status-pill.status-cruising) {
+    background: linear-gradient(180deg, rgba(213,173,77,0.3), rgba(213,173,77,0.12));
+    border-color: rgba(213,173,77,0.38);
+    box-shadow: 0 0 14px rgba(213,173,77,0.2);
+  }
+  .table-wrap :global(.status-pill.status-idling) {
+    background: linear-gradient(180deg, rgba(83,213,253,0.18), rgba(83,213,253,0.08));
+    border-color: rgba(83,213,253,0.24);
+    box-shadow: 0 0 14px rgba(83,213,253,0.14);
+  }
+  .table-wrap :global(.status-pill.status-congesting) {
+    background: linear-gradient(180deg, rgba(239,68,68,0.18), rgba(127,29,29,0.12));
+    border-color: rgba(239,68,68,0.28);
+    box-shadow: 0 0 14px rgba(127,29,29,0.16);
+  }
+
+  /* tier badges */
+  .table-wrap :global(.tier) {
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    font-family: 'Orbitron', sans-serif;
+    white-space: nowrap;
+  }
+  .table-wrap :global(.tier.blazing)  { background: rgba(239,68,68,0.12);  color: #f87171; border: 1px solid rgba(239,68,68,0.25); }
+  .table-wrap :global(.tier.cruising) { background: rgba(213,173,77,0.12);  color: #d5ad4d; border: 1px solid rgba(213,173,77,0.25); }
+  .table-wrap :global(.tier.active)   { background: rgba(129,140,248,0.12); color: #818cf8; border: 1px solid rgba(129,140,248,0.25); }
+  .table-wrap :global(.tier.crawling) { background: rgba(83,213,253,0.08);  color: #53d5fd; border: 1px solid rgba(83,213,253,0.2); }
+
+  @keyframes pulse { 0%,100%{opacity:0.4} 50%{opacity:1} }
+  @keyframes sweep { 0%{left:-100%} 60%{left:100%} 100%{left:100%} }
+
+  @media (max-width: 768px) {
+    .section-header-top { flex-direction: column; align-items: flex-start; }
+    .section-header h2 { font-size: 1.5rem; }
+    .pp-stats { grid-template-columns: repeat(2, 1fr); }
+    .users-section { padding: 1.5rem 1rem; }
+    .controls { flex-direction: column; align-items: stretch; }
+    .sort-select { width: 100%; min-width: 0; max-width: none; flex-basis: auto; }
+    .count-text { margin-left: 0; }
+  }
+</style>

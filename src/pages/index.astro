@@ -1,116 +1,1132 @@
 ---
-import Layout from '../layouts/Layout.astro';
+import Layout from "../layouts/Layout.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+const gameHref = `${import.meta.env.BASE_URL || '/'}game`;
 ---
+<Layout>
+<SiteHeader context="home" />
 
-<Layout title="Research Efficiency">
-  <main>
-    <h1>Research Efficiency</h1>
-    <p>Starter site is live and deploying from GitLab CI/CD.</p>
-    <p class="hint">Replace this page under <code>src/pages/</code> with the real content.</p>
+<main>
 
-    <div class="evil-eye" role="img" aria-label="A blinking evil eye">
-      <div class="eyeball">
-        <div class="iris"><div class="pupil"></div></div>
-        <div class="lid"></div>
+  <!-- HERO -->
+  <section id="hero" class="hero">
+
+    <!-- LEFT -->
+    <div class="hero-left">
+      <div class="hero-prompt">
+		$ cluster --status <span class="cursor">▮</span>
+	</div>
+	  <h1 class="hero-title"><span>Cluster Analytics</span><br>  <span class="platform">Platform</span></h1>
+      <p class="hero-tagline">
+		Real time cluster analytics for researchers who care about performance. Command the cluster. 
+		Save GPU hours. Move Slurm forward.
+	  </p>
+      <div class="hero-status-panel">
+        <div class="hero-status-top">
+          <span class="hero-live-pill">
+            <span class="hero-live-dot"></span>
+            Live Cluster Status
+          </span>
+        </div>
+        <div class="hero-status-grid">
+          <div class="hero-status-card load" id="hero-load-card">
+            <span class="status-label">Load</span>
+            <strong id="hero-load-status">BUSY</strong>
+          </div>
+        </div>
+        <p class="hero-live-error" id="hero-live-error" hidden></p>
+      </div>
+      <a href={gameHref} class="cta-btn">▶ PLAY CLUSTER _cmd</a>
+    </div>
+
+    <!-- RIGHT: Slurm-o dashboard unchanged -->
+    <div class="hero-right">
+      <div class="util-panel busy" id="slurm-panel">
+        <div class="util-header">
+          SLURM-O STATUS
+        </div>
+        <img class="snail-img busy" src="/snail.png" alt="slurm-o" />
+		<div class="snail-speed">  
+			<span></span>  
+			<span></span>  
+			<span></span>
+		</div>
+        <div class="util-status" id="slurm-status">BUSY</div>
+        <div class="util-bar">
+          <div class="util-fill" data-width="90%"></div>
+        </div>
+        <div class="util-labels">
+          <span>IDLE</span>
+          <span id="slurm-percent">68%</span>
+          <span>OVERLOADED</span>
+        </div>
+        <p class="util-help" id="slurm-help">IDLE means low usage, BUSY means moderate activity, and OVERLOADED means the cluster is under heavy load.</p>
       </div>
     </div>
-  </main>
+  </section>
+
+  <!-- LEADER BOARD -->
+  <section id="leader-section" class="leader-section">
+    <div class="dashboard-card">
+      <div class="board-header">
+        <div>
+          <h1>Leader Board</h1>
+          <p class="board-subtitle">TOP 10 COMMANDERS </p>
+        </div>
+        <span class="board-live" id="leader-last">Loading…</span>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th><span class="table-label"><span class="table-icon-bg"><img class="table-icon" src="/Name.png" alt="User icon" /></span>User</span></th>
+            <th><span class="table-label"><span class="table-icon-bg"><img class="table-icon" src="/GPU.png" alt="GPU icon" /></span>Efficiency</span></th>
+            <th>Game Bonus</th>
+            <th><span class="table-label"><span class="table-icon-bg"><img class="table-icon" src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%3E%3Cpolygon%20points='5,16%2012,8%2019,16'%20fill='%2310b981'/%3E%3C/svg%3E" alt="Up arrow" /></span><span class="table-wrap-text">GPU Hours<br>Gained</span></span></th>
+          </tr>
+        </thead>
+        <tbody id="leader-tbody">
+          <tr><td colspan="5">Loading live data…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- LOSER BOARD -->
+  <section id="loser-section" class="loser-section">
+    <div class="dashboard-card">
+      <div class="board-header">
+        <div>
+          <h1>Loser Board</h1>
+          <p class="board-subtitle">BOTTOM 10 COMMANDERS</p>
+        </div>
+        <span class="board-live" id="loser-last">Loading…</span>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th><span class="table-label"><span class="table-icon-bg"><img class="table-icon" src="/Name.png" alt="User icon" /></span>User</span></th>
+            <th><span class="table-label"><span class="table-icon-bg"><img class="table-icon" src="/GPU.png" alt="GPU icon" /></span>Efficiency</span></th>
+            <th>Game Bonus</th>
+            <th><span class="table-label"><span class="table-icon-bg"><img class="table-icon" src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%3E%3Cpolygon%20points='12,18%205,8%2019,8'%20fill='%23ef4444'/%3E%3C/svg%3E" alt="Down arrow" /></span><span class="table-wrap-text">GPU Hours<br>Gained</span></span></th>
+          </tr>
+        </thead>
+        <tbody id="loser-tbody">
+          <tr><td colspan="5">Loading live data…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <script>
+    import {
+      formatHours,
+      formatPercent,
+      rankEmoji,
+    } from '../lib/usersData';
+
+    const rankMarker = (rank, variant) => {
+      if (variant === 'loser') {
+        if (rank === 1) return '<span >💤<span class="rank-label"></span></span>';
+        if (rank === 2) return '<span >🧱<span class="rank-label"></span></span>';
+        if (rank === 3) return '<span >🐌<span class="rank-label"></span></span>';
+        return String(rank);
+      }
+
+      return rankEmoji(rank);
+    };
+
+    const renderBoard = (tbody, users, variant) => {
+      tbody.innerHTML = '';
+
+      if (!users.length) {
+        tbody.innerHTML = `<tr><td colspan="5" class="board-empty">No live data available.</td></tr>`;
+        return;
+      }
+
+      users.forEach((user, idx) => {
+        const rank = idx + 1;
+        const eff = user.avgUtilPct;
+        const alloc = user.gpuHoursAlloc;
+        const wasted =
+          user.gpuHoursWasted ??
+          (alloc !== null && user.gpuHoursEffective !== null ? alloc - user.gpuHoursEffective : null);
+        const bonus = getGameBonus(user);
+        const tr = document.createElement('tr');
+        const effBarA = variant === 'loser' ? '#d5ad4d' : '#53d5fd';
+        const effBarB = variant === 'loser' ? '#ffebaf' : '#b6eeff';
+        const effTextColor = variant === 'loser' ? '#d5ad4d' : '#53d5fd';
+
+
+        tr.innerHTML = `
+          <td class="rank-cell">${rankMarker(rank, variant)}</td>
+          <td class="name-cell">${user.user}</td>
+          <td>
+            <div class="eff-cell">
+              <span class="eff-num" style="color:${effTextColor}">${formatPercent(eff)}</span>
+              <div class="ebar">
+                <div class="efill" data-width="${Math.max(0, Math.min(100, eff ?? 0))}%" style="width:0;--fill-a:${effBarA};--fill-b:${effBarB}"></div>
+              </div>
+            </div>
+          </td>
+          <td class="bonus-cell">+${bonus.toLocaleString()}</td>
+          <td class="metric-cell dim-cell">${formatHours(alloc)}</td>
+        `;
+
+        tbody.appendChild(tr);
+      });
+
+      requestAnimationFrame(() => {
+        tbody.querySelectorAll('.efill').forEach((bar) => {
+          bar.style.width = bar.dataset.width || '0%';
+        });
+
+      });
+    };
+
+    function getGameBonus(user) {
+      const eff = user.avgUtilPct ?? 0;
+      const alloc = user.gpuHoursAlloc ?? 0;
+      const effective = user.gpuHoursEffective ?? 0;
+      const wasted = Math.max(0, user.gpuHoursWasted ?? (alloc - effective));
+
+      const efficiencyReward = Math.round(eff * 4);
+      const throughputReward = Math.round(effective * 3);
+      const queueReliefReward = alloc >= 80 ? 250 : alloc >= 50 ? 160 : alloc >= 25 ? 100 : 50;
+      const savingsReward = Math.max(0, 180 - Math.round(wasted * 2));
+      const achievementBonus = eff >= 95 ? 250 : eff >= 90 ? 150 : eff >= 85 ? 100 : eff >= 80 ? 50 : 0;
+
+      return efficiencyReward + throughputReward + queueReliefReward + savingsReward + achievementBonus;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const utilBar = document.querySelector('.util-fill:not(.efill)');
+      const snail = document.querySelector('.snail-img');
+      const speed = document.querySelector('.snail-speed');
+      const status = document.getElementById('slurm-status');
+      const slurmPanel = document.getElementById('slurm-panel');
+      const slurmPercent = document.getElementById('slurm-percent');
+      const heroLoadCard = document.getElementById('hero-load-card');
+      const heroLoadStatus = document.getElementById('hero-load-status');
+      const leaderLast = document.getElementById('leader-last');
+      const loserLast = document.getElementById('loser-last');
+      const heroLiveError = document.getElementById('hero-live-error');
+      const leaderBody = document.getElementById('leader-tbody');
+      const loserBody = document.getElementById('loser-tbody');
+
+      const setHeroLiveError = (message) => {
+        if (!heroLiveError) return;
+        heroLiveError.textContent = message || '';
+        heroLiveError.hidden = !message;
+      };
+
+      const getLoadState = (averageLoad) => {
+        const load = Number.isFinite(averageLoad)
+          ? Math.max(0, Math.min(100, averageLoad))
+          : null;
+
+        if (load === null) {
+          return {
+            state: 'offline',
+            label: 'OFFLINE',
+            heroText: 'Offline',
+            percentText: '—',
+          };
+        }
+
+        if (load < 40) {
+          return {
+            state: 'idle',
+            label: 'IDLE',
+            heroText: 'IDLE',
+            percentText: `${Math.round(load)}%`,
+          };
+        }
+
+        if (load < 75) {
+          return {
+            state: 'busy',
+            label: 'BUSY',
+            heroText: 'BUSY',
+            percentText: `${Math.round(load)}%`,
+          };
+        }
+
+        return {
+          state: 'overloaded',
+          label: 'OVERLOADED',
+          heroText: 'OVERLOADED',
+          percentText: `${Math.round(load)}%`,
+        };
+      };
+
+      const applyLoadState = (averageLoad) => {
+        if (!heroLoadCard || !heroLoadStatus || !status || !slurmPanel || !slurmPercent || !utilBar || !snail) {
+          return;
+        }
+
+        const loadState = getLoadState(averageLoad);
+
+        heroLoadCard.classList.remove('idle', 'busy', 'overloaded', 'offline', 'low', 'moderate', 'high', 'crawling', 'cruising', 'blazing');
+        heroLoadCard.classList.add(loadState.state);
+        heroLoadCard.dataset.state = loadState.state;
+
+        slurmPanel.classList.remove('idle', 'busy', 'overloaded', 'offline', 'crawling', 'cruising', 'blazing');
+        slurmPanel.classList.add(loadState.state);
+        slurmPanel.dataset.state = loadState.state;
+
+        heroLoadStatus.textContent =
+          loadState.percentText === '—' ? loadState.heroText : `${loadState.heroText} ${loadState.percentText}`;
+        status.textContent = loadState.label;
+        slurmPercent.textContent = loadState.percentText;
+
+        utilBar.dataset.width = loadState.percentText === '—' ? '0%' : loadState.percentText;
+        setTimeout(() => {
+          utilBar.style.width = utilBar.dataset.width || '0%';
+        }, 300);
+
+        snail.className = `snail-img ${loadState.state}`;
+        if (loadState.state === 'offline') {
+          speed?.classList.remove('active');
+        } else if (loadState.state === 'overloaded') {
+          speed?.classList.add('active');
+        } else {
+          speed?.classList.remove('active');
+        }
+      };
+
+      applyLoadState(null);
+
+      const loadLiveBoards = async () => {
+        const cacheBust = Date.now();
+        const endpoints = [
+          `/api/gpu-metrics.json?ts=${cacheBust}`,
+          `/.netlify/functions/gpu-metrics?ts=${cacheBust}`,
+        ];
+        let lastErrorMessage = '';
+
+        for (const endpoint of endpoints) {
+          try {
+            const response = await fetch(endpoint, { cache: 'no-store' });
+            const data = await response.json().catch(() => null);
+
+            if (!response.ok || !data?.ok) {
+              throw new Error(data?.error || `Request failed (${response.status})`);
+            }
+
+            const topTen = Array.isArray(data.leaderboard) ? data.leaderboard : [];
+            const bottomTen = Array.isArray(data.wallOfShame) ? data.wallOfShame.slice(0, 10) : [];
+            const updatedAt = data.fetchedAt ? new Date(data.fetchedAt).toLocaleString() : '—';
+            const clusterStatus = data.clusterStatus ?? null;
+
+            applyLoadState(
+              clusterStatus?.percent === null || clusterStatus?.percent === undefined
+                ? null
+                : Number(clusterStatus.percent)
+            );
+
+            setHeroLiveError(data.error ? `Live data error: ${data.error}` : '');
+            renderBoard(leaderBody, topTen, 'leader');
+            renderBoard(loserBody, bottomTen, 'loser');
+            if (leaderLast) leaderLast.textContent = `Updated ${updatedAt}`;
+            if (loserLast) loserLast.textContent = `Updated ${updatedAt}`;
+            return;
+          } catch (error) {
+            lastErrorMessage = error instanceof Error ? error.message : 'Unknown live data error';
+            // Try the next endpoint.
+          }
+        }
+
+        const message = 'Could not load live data. Retry by refreshing the page.';
+        if (leaderBody) leaderBody.innerHTML = `<tr><td colspan="5" class="board-empty">${message}</td></tr>`;
+        if (loserBody) loserBody.innerHTML = `<tr><td colspan="5" class="board-empty">${message}</td></tr>`;
+        setHeroLiveError(lastErrorMessage || 'Live data is unavailable right now. Check the metrics proxy configuration (PROMETHEUS_URL / PROMETHEUS_TOKEN).');
+        applyLoadState(null);
+        if (leaderLast) leaderLast.textContent = 'Offline';
+        if (loserLast) loserLast.textContent = 'Offline';
+      };
+
+      loadLiveBoards();
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          entry.target.querySelectorAll('.efill').forEach((bar) => {
+            setTimeout(() => {
+              bar.style.width = bar.dataset.width || '0%';
+            }, 150);
+          });
+        });
+      });
+
+      document.querySelectorAll('.dashboard-card').forEach((card) => {
+        observer.observe(card);
+      });
+    });
+  </script>
+
+</main>
 </Layout>
 
 <style>
-  main {
-    text-align: center;
-    padding: 2rem;
-    max-width: 40rem;
-  }
-  h1 {
-    margin: 0 0 0.5rem;
-    font-size: clamp(2rem, 6vw, 3.5rem);
-    color: var(--accent);
-  }
-  p { margin: 0.25rem 0; line-height: 1.6; }
-  .hint { opacity: 0.7; font-size: 0.95rem; }
-  code {
-    background: rgba(255, 255, 255, 0.1);
-    padding: 0.1rem 0.35rem;
-    border-radius: 0.25rem;
+  :root {
+    --gpu-primary: #53d5fd;
+    --gpu-glow: #b6eeff;
+    --cpu-primary: #d5ad4d;
+    --cpu-glow: #ffebaf;
   }
 
-  /* ---- Blinking evil eye -------------------------------------------------- */
-  .evil-eye {
-    --eye-w: 200px;
-    --eye-h: 110px;
-    margin: 2.75rem auto 0;
-    width: var(--eye-w);
-    height: var(--eye-h);
-    display: grid;
-    place-items: center;
+  main { margin: 0; }
+  /*Cursor*/
+  .cursor {
+  display: inline-block;
+  margin-left: 4px;
+  animation: blink 1s steps(2, start) infinite;
+}
+
+@keyframes blink {
+  to { visibility: hidden; }
+}
+
+  /* BASE */
+.snail-img {
+  height: auto;
+  width: 200px;
+  margin: 1.2rem auto;
+  display: block;
+  filter: drop-shadow(0 0 10px rgba(213, 173, 77, 0.14));
+}
+ /**/
+
+/* STATES */
+.snail-img.idle {
+animation: crawl 4s ease-in-out infinite;
+}
+
+.snail-img.busy {
+animation: float 2.5s ease-in-out infinite;
+}
+
+.snail-img.overloaded {
+animation: bounce 0.6s ease-in-out infinite;
+}
+
+
+/* KEYFRAMES */
+@keyframes crawl {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+/* SPEED */
+.snail-wrap {
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+
+.snail-speed {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 92px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.snail-speed span {
+  display: block;
+  height: 2px;
+  margin: 6px 0;
+  background: linear-gradient(90deg, transparent, #53d5fd, transparent);
+  animation: speed 0.4s linear infinite;
+}
+
+.snail-speed span:nth-child(2) {
+  animation-delay: 0.1s;
+}
+
+.snail-speed span:nth-child(3) {
+  animation-delay: 0.2s;
+}
+
+@keyframes speed {
+  from { transform: translateX(-20px); opacity: 0; }
+  to   { transform: translateX(20px); opacity: 1; }
+}
+
+.snail-speed.active {
+  opacity: 1;
+}
+
+
+ 
+
+  .terminal {
+	opacity: 0.8
   }
-  .eyeball {
+
+  .hero-title {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 800;
+    font-size: clamp(2.65rem, 5vw, 4.2rem);
+    line-height: 0.92;
+    letter-spacing: 0.02em;
+    color: #d8d8d8;
+    margin: 0.15rem 0 0.25rem 0;
+
+  }
+
+  .hero-title span:first-child {
+    color: #d8d8d8;
+  }
+
+  .hero-title .platform {
+    font-size: 0.82em;
+	font-weight: 700;
+    color: #676969;
+	display: block;
+	margin-top: 2px;
+  }
+
+
+  .hero-description{
+	color: #5c7c7c;
+	margin-top: 0.2rem;
+  }
+  /* ── HERO ── */
+.hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+
+  min-height: calc(100vh - 70px);
+  padding: 3rem 4rem 0;
+  gap: 2rem 3rem;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(83, 213, 253, 0.18) 0%,
+      rgba(83, 213, 253, 0.08) 15%,
+      rgba(83, 213, 253, 0.02) 25%,
+      transparent 45%
+    ),
+    #0a0e14;
+
+  overflow: hidden;
+}
+
+.hero > * {
+  position: relative;
+  z-index: 1;
+}
+
+
+  /* left */
+  .hero-left {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.7rem;   /* ✅ tight F1 spacing */
+}
+
+  .hero-prompt {
+    font-size: 0.85rem;
+    color: #10b981;
+    letter-spacing: 0.1em;
+    font-family: 'Courier New', monospace;
     position: relative;
-    width: var(--eye-w);
-    height: var(--eye-h);
+    z-index: 2;
+	margin-bottom: 0.1rem;
+  }
+  .hero-tagline {
+    font-size: 1.15rem;
+    line-height: 1.6;
+    color: #94a3b8;
+    margin-top: 0.35rem;
+  }
+  .hero-status-panel {
+    width: min(100%, 30rem);
+    padding: 1rem 1.1rem;
+    border: 1px solid rgba(83,213,253,0.2);
+    border-radius: 18px;
+    background: linear-gradient(180deg, rgba(6,19,24,0.96), rgba(6,19,24,0.7));
+    box-shadow: 0 18px 40px rgba(0,0,0,0.24), 0 0 18px rgba(83,213,253,0.08);
+    backdrop-filter: blur(10px);
+  }
+  .hero-status-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.9rem;
+  }
+  .hero-live-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.4rem 0.8rem;
+    border-radius: 999px;
+    border: 1px solid rgba(83,213,253,0.28);
+    background: rgba(83,213,253,0.08);
+    color: #b6eeff;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+  .hero-live-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #10b981;
+    box-shadow: 0 0 12px rgba(16,185,129,0.9);
+    animation: pulse 1.5s infinite;
+  }
+  .hero-status-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+    gap: 0.8rem;
+  }
+  .hero-status-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding: 0.95rem 1rem;
+    border-radius: 14px;
+    border: 1px solid transparent;
+    background: rgba(255,255,255,0.03);
+    transition: border-color 0.35s ease, background 0.35s ease, box-shadow 0.35s ease, transform 0.35s ease;
+  }
+  .hero-status-card .status-label {
+    color: #7a8ba3;
+    font-size: 0.7rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    font-family: 'Orbitron', sans-serif;
+  }
+  .hero-status-card strong {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .hero-status-card.online {
+    border-color: rgba(16,185,129,0.28);
+    background: linear-gradient(180deg, rgba(16,185,129,0.14), rgba(16,185,129,0.04));
+  }
+  .hero-status-card.online strong {
+    color: #78f0c3;
+    text-shadow: 0 0 14px rgba(16,185,129,0.22);
+  }
+  .hero-status-card.load {
+    border-color: rgba(213,173,77,0.28);
+    background: linear-gradient(180deg, rgba(213,173,77,0.14), rgba(213,173,77,0.04));
+  }
+  .hero-status-card.low,
+  .hero-status-card.idle,
+  .hero-status-card.crawling {
+    border-color: rgba(16,185,129,0.24);
+    background: linear-gradient(180deg, rgba(16,185,129,0.14), rgba(16,185,129,0.04));
+  }
+  .hero-status-card.moderate,
+  .hero-status-card.busy,
+  .hero-status-card.cruising {
+    border-color: rgba(213,173,77,0.28);
+    background: linear-gradient(180deg, rgba(213,173,77,0.14), rgba(213,173,77,0.04));
+  }
+  .hero-status-card.high,
+  .hero-status-card.overloaded,
+  .hero-status-card.blazing {
+    border-color: rgba(239,68,68,0.28);
+    background: linear-gradient(180deg, rgba(239,68,68,0.14), rgba(239,68,68,0.04));
+  }
+  .hero-status-card.offline {
+    border-color: rgba(124,152,169,0.24);
+    background: linear-gradient(180deg, rgba(124,152,169,0.12), rgba(124,152,169,0.04));
+  }
+  .hero-status-card.load strong,
+  .hero-status-card.low strong,
+  .hero-status-card.idle strong,
+  .hero-status-card.crawling strong {
+    color: #78f0c3;
+    text-shadow: 0 0 14px rgba(16,185,129,0.22);
+  }
+  .hero-status-card.moderate strong,
+  .hero-status-card.busy strong,
+  .hero-status-card.cruising strong {
+    color: #ffdf8b;
+    text-shadow: 0 0 14px rgba(213,173,77,0.22);
+  }
+  .hero-status-card.high strong,
+  .hero-status-card.overloaded strong,
+  .hero-status-card.blazing strong {
+    color: #ff8f8f;
+    text-shadow: 0 0 14px rgba(239,68,68,0.22);
+  }
+  .hero-status-card.offline strong {
+    color: #94a3b8;
+    text-shadow: none;
+  }
+  .hero-live-error {
+    margin: 0.65rem 0 0;
+    color: #ff8f8f;
+    font-size: 0.8rem;
+    line-height: 1.4;
+  }
+  .cta-btn {
+    display: inline-block;
+    padding: 0.85rem 2rem;
+    background: #53d5fd;
+    color: #061318;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    border-radius: 8px;
+    text-decoration: none;
+    width: fit-content;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+  }
+  .cta-btn:hover { box-shadow: 0 0 28px rgba(83,213,253,0.45); transform: translateY(-2px); }
+
+  /* right: slurm-o — unchanged */
+  .hero-right { display: flex; justify-content: center; }
+  .util-panel {
+    position: relative;
+    padding: 2rem 3rem;
+    background: linear-gradient(180deg, rgba(8, 12, 19, 0.9), rgba(8, 12, 19, 0.48));
+    border: 1px solid rgba(83, 213, 253, 0.14);
+    box-shadow: 0 22px 60px rgba(0, 0, 0, 0.28);
+    border-radius: 28px;
+    backdrop-filter: blur(12px);
+    text-align: left;
+    width: 100%;
+    max-width: 380px;
+    transition: border-color 0.35s ease, box-shadow 0.35s ease, transform 0.35s ease;
+  }
+  .util-panel.idle,
+  .util-panel.crawling {
+    border-color: rgba(16, 185, 129, 0.28);
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.32), 0 0 18px rgba(16, 185, 129, 0.08);
+  }
+  .util-panel.busy,
+  .util-panel.cruising {
+    border-color: rgba(213, 173, 77, 0.32);
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.32), 0 0 18px rgba(213, 173, 77, 0.08);
+  }
+  .util-panel.overloaded,
+  .util-panel.blazing {
+    border-color: rgba(239, 68, 68, 0.34);
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.32), 0 0 18px rgba(239, 68, 68, 0.08);
+  }
+  .util-panel.offline {
+    border-color: rgba(124, 152, 169, 0.24);
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.32), 0 0 18px rgba(124, 152, 169, 0.08);
+  }
+  .util-header {
+    color: #53d5fd;
+    font-size: 0.75rem;
+    letter-spacing: 0.18em;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    font-family: 'Orbitron', sans-serif;
+  }
+
+  .util-status {
+    color: #d5ad4d;
+    letter-spacing: 0.2em;
+    margin-bottom: 1rem;
+    text-align: center;
+    font-size: 0.88rem;
+  }
+  .util-panel.idle .util-status,
+  .util-panel.crawling .util-status {
+    color: #78f0c3;
+  }
+  .util-panel.busy .util-status,
+  .util-panel.cruising .util-status {
+    color: #ffdf8b;
+  }
+  .util-panel.overloaded .util-status,
+  .util-panel.blazing .util-status {
+    color: #ff8f8f;
+  }
+  .util-panel.offline .util-status {
+    color: #94a3b8;
+  }
+  .util-bar {
+    height: 8px;
+    background: rgba(255,255,255,.08);
+    border-radius: 999px;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+  }
+  .util-fill {
+    height: 100%;
+    width: 0;
+    border-radius: 999px;
+    background: linear-gradient(90deg,#53d5fd,#d5ad4d);
+    transition: width 1.8s ease;
+  }
+  .util-panel.idle .util-fill,
+  .util-panel.crawling .util-fill {
+    background: linear-gradient(90deg,#53d5fd,#78f0c3);
+  }
+  .util-panel.busy .util-fill,
+  .util-panel.cruising .util-fill {
+    background: linear-gradient(90deg,#53d5fd,#ffdf8b);
+  }
+  .util-panel.overloaded .util-fill,
+  .util-panel.blazing .util-fill {
+    background: linear-gradient(90deg,#ef4444,#ff8f8f);
+  }
+  .util-panel.offline .util-fill {
+    background: linear-gradient(90deg,#7c98a9,#94a3b8);
+  }
+  .util-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.7rem;
+    color: #7a8ba3;
+  }
+  .util-help {
+    margin: 0.55rem 0 0;
+    color: #9fb1c5;
+    font-size: 0.72rem;
+    line-height: 1.45;
+    text-align: center;
+  }
+
+  @media (max-width: 900px) {
+    .hero {
+      grid-template-columns: 1fr;
+      padding: 2.5rem 1.5rem 1rem;
+    }
+
+    .hero::before {
+      background:
+        linear-gradient(180deg, rgba(126, 0, 10, 0.22) 0%, rgba(54, 0, 12, 0.1) 20%, rgba(10, 14, 20, 0) 38%),
+        radial-gradient(circle at 24% 8%, rgba(255, 30, 30, 0.12) 0%, rgba(255, 30, 30, 0.03) 18%, rgba(10, 14, 20, 0) 34%);
+    }
+
+    .hero-right {
+      justify-content: center;
+    }
+
+    .util-panel {
+      padding: 1.75rem 1.5rem;
+    }
+
+    .hero-status-top {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .hero-status-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* ── SECTIONS ── */
+  section { padding: 1rem 2rem; }
+  .leader-section { background: #111; color: #b6eeff; }
+  .loser-section  { background: #111; color: #ffebaf; }
+
+  /* ── BOARDS ── */
+  .board-subtitle {
+    margin: 0 0 1rem;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: #7a8ba3;
+  }
+  .board-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .board-header h1 {
+    margin: 0 0 0.25rem;
+    font-family: 'Orbitron', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .board-live {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #7a8ba3;
+    white-space: nowrap;
+  }
+  .board-live::before {
+    content: '';
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+    box-shadow: 0 0 10px currentColor;
+  }
+  .dashboard-card {
+    backdrop-filter: blur(8px);
+    margin: 2rem auto;
+    padding: 1.5rem;
+    background: #061318;
+    border-radius: 24px;
+    max-width: 960px;
+  }
+  .leader-section .dashboard-card {
+    border: 1px solid #53d5fd;
+    box-shadow: 0 0 20px rgba(83,213,253,.15);
+  }
+  .loser-section .dashboard-card {
+    background: #111;
+    border: 1px solid #d5ad4d;
+  }
+
+  /* ── TABLE ── */
+  table {
+    width: 100%;
+    max-width: 900px;
+    margin: 2rem auto;
+    border-collapse: collapse;
+    background: #061318;
+    color: #b6eeff;
+    border-radius: 16px;
+    overflow: hidden;
+    table-layout: fixed;
+  }
+  th, td {
+    padding: 1.2rem 1.4rem;
+    text-align: center;
+    overflow: hidden;
+  }
+  th { background: #222; color: white; font-weight: 700; }
+  .leader-section :global(tbody tr),
+  .loser-section :global(tbody tr) {
+    border-bottom: 1px solid rgba(83,213,253,0.14);
+    height: 60px;
+    transition: transform 0.2s ease, background-color 0.2s ease;
+  }
+  .leader-section :global(tbody td),
+  .loser-section :global(tbody td) {
+    border-bottom: none;
+  }
+  .leader-section :global(tbody tr:last-child),
+  .loser-section :global(tbody tr:last-child) { border-bottom: none; }
+
+  .leader-section table th { background: rgba(83,213,253,0.08) !important; color: #53d5fd !important; border-bottom: 1px solid rgba(83,213,253,0.18); }
+  .loser-section  table th { background: #432d00 !important; color: #d5ad4d !important; border-bottom: 1px solid rgba(213,173,77,0.18); }
+  .leader-section table,
+  .loser-section table {
+    border: 1px solid rgba(83,213,253,0.14);
+  }
+  .leader-section :global(tbody tr:hover) {
+    background: rgba(83,213,253,0.05);
+    transform: translateY(-1px);
+  }
+  .loser-section :global(tbody tr:hover) {
+    background: rgba(213,173,77,0.05);
+    animation: loser-shake 0.35s ease-in-out;
+  }
+  .leader-section table th:nth-child(1), .loser-section table th:nth-child(1),
+  .leader-section table td:nth-child(1), .loser-section table td:nth-child(1) { width: 72px; }
+  .leader-section table th:nth-child(2), .loser-section table th:nth-child(2),
+  .leader-section table td:nth-child(2), .loser-section table td:nth-child(2) { width: 24%; }
+  .leader-section table th:nth-child(3), .loser-section table th:nth-child(3),
+  .leader-section table td:nth-child(3), .loser-section table td:nth-child(3) { width: 24%; overflow: visible; }
+  .leader-section table th:nth-child(4), .loser-section table th:nth-child(4),
+  .leader-section table td:nth-child(4), .loser-section table td:nth-child(4) { width: 16%; text-align: center; }
+  .leader-section table th:nth-child(5), .loser-section table th:nth-child(5),
+  .leader-section table td:nth-child(5), .loser-section table td:nth-child(5) { width: 18%; }
+  .leader-section :global(.board-empty),
+  .loser-section :global(.board-empty) {
+    padding: 1.5rem;
+    color: #7a8ba3;
+    font-family: 'Orbitron', sans-serif;
+    letter-spacing: 0.06em;
+  }
+
+  .table-label { display: inline-flex; align-items: center; gap: 0.5rem; white-space: nowrap; }
+  .table-wrap-text { display: inline-block; white-space: normal; line-height: 1.05; text-align: left; }
+  .leader-section .table-wrap,
+  .loser-section .table-wrap {
+    background: #061318;
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  .leader-section :global(.name-cell),
+  .loser-section :global(.name-cell) {
+    text-align: center;
+    font-weight: 600;
+    color: #e2e8f0;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.82rem;
+    letter-spacing: 0.05em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .leader-section table th:nth-child(2),
+  .loser-section table th:nth-child(2) {
+    text-align: center;
+  }
+  .leader-section :global(.rank-cell),
+  .loser-section :global(.rank-cell) {
+    font-size: 1.08rem;
+    font-weight: 700;
+    color: #d5ad4d;
+    width: 80px;
+    text-align: center;
+  }
+  .leader-section :global(.rank-marker),
+  .loser-section :global(.rank-marker) {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1px;
+    line-height: 1;
+  }
+  .leader-section :global(.rank-label),
+  .loser-section :global(.rank-label) {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.56rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .leader-section table th:nth-child(1),
+  .loser-section table th:nth-child(1),
+  .leader-section table th:nth-child(2),
+  .loser-section table th:nth-child(2) {
+    text-align: center;
+  }
+  .leader-section table th:nth-child(3),
+  .loser-section table th:nth-child(3) {
+    text-align: center;
+  }
+  .leader-section :global(tbody tr.active-row),
+  .loser-section :global(tbody tr.active-row) {
+    background: rgba(83,213,253,0.08);
+    border-left: 2px solid #53d5fd;
+  }
+  .leader-section :global(.eff-cell),
+  .loser-section :global(.eff-cell) {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    justify-content: flex-start;
+    min-width: 0;
+  }
+  .leader-section :global(.ebar),
+  .loser-section :global(.ebar) {
+    width: auto;
+    min-width: 56px;
+    height: 10px;
+    background: rgba(255,255,255,.08);
+    border-radius: 999px;
+    overflow: hidden;
+    flex: 1 1 auto;
+  }
+  .leader-section :global(.efill),
+  .loser-section :global(.efill) {
+    height: 100%;
+    width: 0;
+    border-radius: 999px;
+    transition: width 1.6s ease-out;
+    position: relative;
+    overflow: hidden;
+  }
+  .leader-section :global(.eff-num),
+  .loser-section :global(.eff-num) {
+    font-weight: 700;
+    width: 92px;
+    min-width: 92px;
+    text-align: right;
+    font-family: 'Orbitron', sans-serif;
+    font-variant-numeric: tabular-nums;
+    font-size: 0.86rem;
+    flex: 0 0 92px;
+  }
+  .table-icon-bg {
+    width: 40px; height: 40px;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: rgba(83,213,253,0.12);
+    border: 1px solid #53d5fd;
     border-radius: 50%;
     overflow: hidden;
-    background: radial-gradient(ellipse at center, #ffffff 58%, #ffd9d9 100%);
-    box-shadow:
-      0 0 22px 4px rgba(255, 30, 30, 0.55),
-      inset 0 0 22px rgba(120, 0, 0, 0.35);
-    animation: glow 2.4s ease-in-out infinite;
   }
-  .iris {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 78px;
-    height: 78px;
-    transform: translate(-50%, -50%);
-    border-radius: 50%;
-    background: radial-gradient(circle at 50% 38%, #ff5a3c 0%, #c1121f 46%, #5c0000 100%);
-    box-shadow: 0 0 14px rgba(255, 60, 30, 0.9);
-    animation: look 5s ease-in-out infinite;
+  .table-icon { width: 100%; height: 100%; display: block; object-fit: contain; }
+
+  .gpu-cell { display: flex; align-items: center; gap: 0.5rem; justify-content: center; }
+  .leader-section :global(.efill) {
+    background: linear-gradient(90deg,#53d5fd,#b6eeff);
+    box-shadow: 0 0 12px #53d5fd;
   }
-  .pupil {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 16px;
-    height: 64px; /* vertical reptilian slit */
-    transform: translate(-50%, -50%);
-    border-radius: 50%;
-    background: #0a0000;
-    box-shadow: inset 0 0 6px #000;
+  .loser-section :global(.efill) {
+    background: linear-gradient(90deg,#d5ad4d,#ffebaf);
+    box-shadow: 0 0 12px #d5ad4d;
   }
-  /* eyelid that snaps shut to make the blink */
-  .lid {
+  .leader-section :global(.dim-cell),
+  .loser-section :global(.dim-cell) { color: #7c98a9; font-size: 0.9rem; line-height: 1.2; }
+  .leader-section :global(.metric-cell),
+  .loser-section :global(.metric-cell) {
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+  }
+  .leader-section :global(.efill::after),
+  .loser-section :global(.efill::after) {
+    content: "";
     position: absolute;
-    inset: 0;
-    background: var(--bg);
-    transform: scaleY(0);
-    transform-origin: center;
-    animation: blink 4s ease-in-out infinite;
+    top: 0; left: -100%;
+    width: 100%; height: 100%;
+    background: rgba(255,255,255,.35);
+    animation: sweep 2.5s infinite;
   }
 
-  @keyframes blink {
-    0%, 88%, 100% { transform: scaleY(0); }   /* eye open */
-    92%, 94%      { transform: scaleY(1.05); } /* eye shut */
-  }
-  @keyframes glow {
-    0%, 100% {
-      box-shadow: 0 0 18px 3px rgba(255, 30, 30, 0.45), inset 0 0 22px rgba(120, 0, 0, 0.35);
-    }
-    50% {
-      box-shadow: 0 0 34px 8px rgba(255, 30, 30, 0.85), inset 0 0 26px rgba(150, 0, 0, 0.5);
-    }
-  }
-  @keyframes look {
-    0%, 100% { transform: translate(-50%, -50%); }
-    35%      { transform: translate(-72%, -50%); }
-    65%      { transform: translate(-28%, -50%); }
+  .leader-section :global(.bonus-cell),
+  .loser-section :global(.bonus-cell) {
+    color: #d5ad4d;
+    font-weight: 700;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    font-size: 0.9rem;
+    line-height: 1.2;
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    .eyeball, .iris, .lid { animation: none; }
-    .lid { transform: scaleY(0); }
-  }
+  /* rank badges */
+
+
+  /* ── ANIMATIONS ── */
+  @keyframes float   { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
+  @keyframes pulse   { 0%,100%{opacity:.4} 50%{opacity:1} }
+  @keyframes pip     { 0%,100%{opacity:0.3} 50%{opacity:1} }
+  @keyframes sweep   { 0%{left:-100%} 100%{left:100%} }
+  @keyframes loser-shake { 0%{transform:translateX(0)} 25%{transform:translateX(-2px)} 50%{transform:translateX(2px)} 75%{transform:translateX(-1px)} 100%{transform:translateX(0)} }
+
 </style>

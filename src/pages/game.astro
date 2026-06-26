@@ -1,0 +1,15 @@
+---
+import Layout from "../layouts/Layout.astro";
+import GamePlaceholder from "../components/GamePlaceholder.jsx";
+---
+
+<Layout>
+  <section class="game-section">
+    <div class="game-wrapper">
+
+      <div class="game-placeholder-card">
+        <GamePlaceholder client:only="react" />
+      </div>
+    </div>
+  </section>
+</Layout>

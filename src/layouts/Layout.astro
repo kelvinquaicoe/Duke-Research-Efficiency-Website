@@ -60,7 +60,7 @@ const { title = 'Research Efficiency' } = Astro.props;
     color: var(--fg);
   }
 
-  :global(.site-header) {
+  .site-header {
     height: 70px;
     display: flex;
     align-items: center;
@@ -73,7 +73,7 @@ const { title = 'Research Efficiency' } = Astro.props;
     z-index: 100;
   }
 
-  :global(.site-header .header-brand) {
+  .site-header .header-brand {
     display: flex;
     align-items: center;
     gap: 1rem;
@@ -81,11 +81,11 @@ const { title = 'Research Efficiency' } = Astro.props;
     text-decoration: none;
   }
 
-  :global(.site-header .header-brand:hover) {
+  .site-header .header-brand:hover {
     filter: drop-shadow(0 0 10px rgba(83, 213, 253, 0.25));
   }
 
-  :global(.site-header .logo) {
+  .site-header .logo {
     width: 60px;
     height: 60px;
     object-fit: contain;
@@ -93,42 +93,42 @@ const { title = 'Research Efficiency' } = Astro.props;
     background: transparent;
   }
 
-  :global(.site-header .brand-text) {
+  .site-header .brand-text {
     display: flex;
     flex-direction: column;
     gap: 0.2rem;
   }
 
-  :global(.site-header .header-brand h1) {
+  .site-header .header-brand h1 {
     font-family: "Orbitron", sans-serif;
     letter-spacing: 0.08em;
     font-weight: 800;
     margin: 0;
   }
 
-  :global(.site-header .cluster-text) {
+  .site-header .cluster-text {
     color: #d8d8d8;
   }
 
-  :global(.site-header .cmd-text) {
+  .site-header .cmd-text {
     color: #53d5fd;
   }
 
-  :global(.site-header .brand-subtitle) {
+  .site-header .brand-subtitle {
     margin: 0;
     color: #d5ad4d;
     font-size: 0.82rem;
     line-height: 1.3;
   }
 
-  :global(.site-header .header-nav) {
+  .site-header .header-nav {
     display: flex;
     align-items: center;
     gap: 2.5rem;
     margin-left: auto;
   }
 
-  :global(.site-header .header-nav a) {
+  .site-header .header-nav a {
     display: inline-block;
     color: white;
     text-decoration: none;
@@ -141,24 +141,24 @@ const { title = 'Research Efficiency' } = Astro.props;
     font-family: "Orbitron", sans-serif;
   }
 
-  :global(.site-header .header-nav a:hover) {
+  .site-header .header-nav a:hover {
     background: rgba(83, 213, 253, 0.15);
     color: #b6eeff;
     box-shadow: 0 0 12px rgba(83, 213, 253, 0.35);
     transform: translateY(-2px);
   }
 
-  :global(.site-header .header-nav a.loser-link:hover) {
+  .site-header .header-nav a.loser-link:hover {
     background: rgba(213, 173, 77, 0.15);
     color: white;
   }
 
   @media (max-width: 768px) {
-    :global(.site-header) {
+    .site-header {
       padding: 0.5rem 1rem;
     }
 
-    :global(.site-header .header-nav) {
+    .site-header .header-nav {
       gap: 1.5rem;
     }
   }

@@ -2,7 +2,7 @@
 dist/
 .netlify/
 
-# generated types / astro cache
+# generated types
 .astro/
 
 # dependencies
@@ -17,16 +17,14 @@ pnpm-debug.log*
 # environment variables
 .env
 .env.production
-.env.local
 
-# editor / OS
+# macOS-specific files
 .DS_Store
-.vscode/
-.idea/
 
-# deployment / host tooling
+# jetbrains setting folder
+.idea/
+.env.local
 .vercel/
 
 # local nested-repo backups
 src/RE Chatbot/Website chatbot RE/.git.backup/
-

@@ -1,38 +1,50 @@
-# reseff_website
-
-Astro site for the Research Efficiency / Cluster_cmd project.
-
-## Development
+# Astro Starter Kit: Basics
 
 ```sh
-npm install
-npm run dev
+npm create astro@latest -- --template basics
 ```
 
-## Build and preview
+> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
 
-```sh
-npm run build
-npm run preview
+## 🚀 Project Structure
+
+Inside of your Astro project, you'll see the following folders and files:
+
+```text
+/
+├── public/
+│   └── favicon.svg
+├── src
+│   ├── assets
+│   │   └── astro.svg
+│   ├── components
+│   │   └── Welcome.astro
+│   ├── layouts
+│   │   └── Layout.astro
+│   └── pages
+│       └── index.astro
+└── package.json
 ```
 
-## Project layout
+To learn more about the folder structure of an Astro project, refer to [our guide on project structure](https://docs.astro.build/en/basics/project-structure/).
 
-- `src/pages/` — pages and API routes
-- `src/components/` — shared UI pieces
-- `src/layouts/` — site layout and global styles
-- `src/game/` — embedded React game app
-- `public/` — static assets
+## 🧞 Commands
+
+All commands are run from the root of the project, from a terminal:
+
+| Command                   | Action                                           |
+| :------------------------ | :----------------------------------------------- |
+| `npm install`             | Installs dependencies                            |
+| `npm run dev`             | Starts local dev server at `localhost:4321`      |
+| `npm run build`           | Build your production site to `./dist/`          |
+| `npm run preview`         | Preview your build locally, before deploying     |
+| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
+| `npm run astro -- --help` | Get help using the Astro CLI                     |
+
+## 👀 Want to learn more?
+
+Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
 
 ## Deployment
 
-- Production build output: `dist/`
-- Host: `reseff.cs.duke.edu`
-- The site is deployed as a static Astro build on the main server.
-- See `DEPLOYMENT.md` for the current deployment workflow.
-
-## Notes
-
-- The chatbot widget loads from `/chatbot/` by default.
-- Set `PUBLIC_CHATBOT_URL` to override the chatbot location if needed.
-- The embedded game uses React components, so Astro React integration is enabled in `astro.config.mjs`.
+Netlify deployment standards for this project are documented in [DEPLOYMENT.md](./DEPLOYMENT.md).

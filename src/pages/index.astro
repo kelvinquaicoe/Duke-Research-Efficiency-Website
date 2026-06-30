@@ -341,7 +341,7 @@ const gameHref = `${import.meta.env.BASE_URL || '/'}game`;
         const message = 'Could not load live data. Retry by refreshing the page.';
         if (leaderBody) leaderBody.innerHTML = `<tr><td colspan="5" class="board-empty">${message}</td></tr>`;
         if (loserBody) loserBody.innerHTML = `<tr><td colspan="5" class="board-empty">${message}</td></tr>`;
-        setHeroLiveError(lastErrorMessage || 'Live data is unavailable right now. Check the metrics proxy configuration (PROMETHEUS_URL / PROMETHEUS_TOKEN).');
+        setHeroLiveError(lastErrorMessage || 'Live data is unavailable right now. Check PROMETHEUS_URL and PROMETHEUS_TOKEN in Vercel.');
         applyLoadState(null);
         if (leaderLast) leaderLast.textContent = 'Offline';
         if (loserLast) loserLast.textContent = 'Offline';

@@ -1,12 +1,12 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import react from '@astrojs/react';
+import vercel from '@astrojs/vercel';
 
-// Static build for reseff.cs.duke.edu.
-// The host serves ./dist through Caddy/rsync, so we keep Astro in static mode.
+// https://astro.build/config
 export default defineConfig({
-  output: 'static',
-  site: 'https://reseff.cs.duke.edu',
+  output: 'server',
+  adapter: vercel(),
   integrations: [react()],
   vite: {
     resolve: {

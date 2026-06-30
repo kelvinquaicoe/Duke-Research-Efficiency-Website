@@ -1,165 +1,151 @@
 ---
+import SiteHeader from '../components/SiteHeader.astro';
 import ChatbotWidget from '../components/ChatbotWidget.astro';
-
-interface Props {
-  title?: string;
-}
-
-const { title = 'Research Efficiency' } = Astro.props;
 ---
 
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="generator" content={Astro.generator} />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Orbitron:wght@500;700;800&display=swap"
-      rel="stylesheet"
-    />
-    <link rel="icon" href="/favicon.ico" />
-    <title>{title}</title>
-  </head>
-  <body>
-    <slot />
-    <ChatbotWidget />
-  </body>
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width" />
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Orbitron:wght@500;700;800&display=swap"
+			rel="stylesheet"
+		/>
+		<link rel="icon" href="/favicon.ico" />
+		<meta name="generator" content={Astro.generator} />
+		<title>Astro Basics</title>
+	</head>
+	<body>
+		<slot />
+	<ChatbotWidget />
+	</body>
 </html>
 
-<style is:global>
-  :root {
-    --bg: #0a0e14;
-    --fg: #f5f7fa;
-    --accent: #5bc0be;
-    font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  }
+<style>
+	:global(html),
+	:global(body) {
+		margin: 0;
+		width: 100%;
+		height: 100%;
+	}
 
-  * {
-    box-sizing: border-box;
-  }
+	:global(html) {
+		overflow-y: scroll;
+		scrollbar-gutter: stable;
+	}
 
-  html,
-  body {
-    margin: 0;
-    width: 100%;
-    min-height: 100%;
-  }
+	:global(body) {
+		overflow-y: scroll;
+		overflow-x: hidden;
+	}
 
-  html {
-    overflow-y: scroll;
-    scrollbar-gutter: stable;
-  }
+	:global(body) {
+		font-family: "Inter", sans-serif;
+		background: #111;
+	}
+	:global(.site-header) {
+		height: 70px;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 0.5rem 1.5rem;
+		background: #061318;
+		box-shadow: 0 0 20px rgba(83, 213, 253, 0.5);
+		position: sticky;
+		top: 0;
+		z-index: 100;
+	}
 
-  body {
-    overflow-x: hidden;
-    overflow-y: scroll;
-    background: var(--bg);
-    color: var(--fg);
-  }
+	:global(.site-header .header-brand) {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		color: inherit;
+		text-decoration: none;
+	}
 
-  .site-header {
-    height: 70px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0.5rem 1.5rem;
-    background: #061318;
-    box-shadow: 0 0 20px rgba(83, 213, 253, 0.5);
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
+	:global(.site-header .header-brand:hover) {
+		filter: drop-shadow(0 0 10px rgba(83, 213, 253, 0.25));
+	}
 
-  .site-header .header-brand {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    color: inherit;
-    text-decoration: none;
-  }
+	:global(.site-header .logo) {
+		width: 60px;
+		height: 60px;
+		object-fit: contain;
+		flex-shrink: 0;
+		background: transparent;
+	}
 
-  .site-header .header-brand:hover {
-    filter: drop-shadow(0 0 10px rgba(83, 213, 253, 0.25));
-  }
+	:global(.site-header .brand-text) {
+		display: flex;
+		flex-direction: column;
+		gap: 0.2rem;
+	}
 
-  .site-header .logo {
-    width: 60px;
-    height: 60px;
-    object-fit: contain;
-    flex-shrink: 0;
-    background: transparent;
-  }
+	:global(.site-header .header-brand h1) {
+		font-family: "Orbitron", sans-serif;
+		letter-spacing: 0.08em;
+		font-weight: 800;
+		margin: 0;
+	}
 
-  .site-header .brand-text {
-    display: flex;
-    flex-direction: column;
-    gap: 0.2rem;
-  }
+	:global(.site-header .cluster-text) {
+		color: #d8d8d8;
+	}
 
-  .site-header .header-brand h1 {
-    font-family: "Orbitron", sans-serif;
-    letter-spacing: 0.08em;
-    font-weight: 800;
-    margin: 0;
-  }
+	:global(.site-header .cmd-text) {
+		color: #53d5fd;
+	}
 
-  .site-header .cluster-text {
-    color: #d8d8d8;
-  }
+	:global(.site-header .brand-subtitle) {
+		margin: 0;
+		color: #d5ad4d;
+		font-size: 0.82rem;
+		line-height: 1.3;
+	}
 
-  .site-header .cmd-text {
-    color: #53d5fd;
-  }
+	:global(.site-header .header-nav) {
+		display: flex;
+		align-items: center;
+		gap: 2.5rem;
+		margin-left: auto;
+	}
 
-  .site-header .brand-subtitle {
-    margin: 0;
-    color: #d5ad4d;
-    font-size: 0.82rem;
-    line-height: 1.3;
-  }
+	:global(.site-header .header-nav a) {
+		display: inline-block;
+		color: white;
+		text-decoration: none;
+		transition: all 0.2s ease;
+		padding: 0.4rem 0.7rem;
+		border-radius: 6px;
+		font-size: 0.8rem;
+		letter-spacing: 0.15em;
+		text-transform: uppercase;
+		font-family: "Orbitron", sans-serif;
+	}
 
-  .site-header .header-nav {
-    display: flex;
-    align-items: center;
-    gap: 2.5rem;
-    margin-left: auto;
-  }
+	:global(.site-header .header-nav a:hover) {
+		background: rgba(83, 213, 253, 0.15);
+		color: #b6eeff;
+		box-shadow: 0 0 12px rgba(83, 213, 253, 0.35);
+		transform: translateY(-2px);
+	}
 
-  .site-header .header-nav a {
-    display: inline-block;
-    color: white;
-    text-decoration: none;
-    transition: all 0.2s ease;
-    padding: 0.4rem 0.7rem;
-    border-radius: 6px;
-    font-size: 0.8rem;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    font-family: "Orbitron", sans-serif;
-  }
+	:global(.site-header .header-nav a.loser-link:hover) {
+		background: rgba(213, 173, 77, 0.15);
+		color: white;
+	}
 
-  .site-header .header-nav a:hover {
-    background: rgba(83, 213, 253, 0.15);
-    color: #b6eeff;
-    box-shadow: 0 0 12px rgba(83, 213, 253, 0.35);
-    transform: translateY(-2px);
-  }
+	@media (max-width: 768px) {
+		:global(.site-header) {
+			padding: 0.5rem 1rem;
+		}
 
-  .site-header .header-nav a.loser-link:hover {
-    background: rgba(213, 173, 77, 0.15);
-    color: white;
-  }
-
-  @media (max-width: 768px) {
-    .site-header {
-      padding: 0.5rem 1rem;
-    }
-
-    .site-header .header-nav {
-      gap: 1.5rem;
-    }
-  }
+		:global(.site-header .header-nav) {
+			gap: 1.5rem;
+		}
+	}
 </style>

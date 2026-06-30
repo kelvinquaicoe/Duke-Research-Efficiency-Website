@@ -1,62 +1,83 @@
-export const prerender = true;
+import type { APIRoute } from "astro";
 
-const PROMETHEUS_BASE =
-  process.env.PROMETHEUS_URL || 'https://thanos-metrics.oit.duke.edu';
-const PROMETHEUS_TOKEN = process.env.PROMETHEUS_TOKEN;
+type PrometheusResult = {
+  metric: Record<string, string>;
+  value?: [number, string];
+};
 
-async function queryPrometheus(expr: string) {
-  const url = `${PROMETHEUS_BASE}/api/v1/query?query=${encodeURIComponent(expr)}`;
-  const headers: Record<string, string> = { Accept: 'application/json' };
+type PrometheusResponse = {
+  status?: string;
+  data?: {
+    result?: PrometheusResult[];
+  };
+};
 
-  if (PROMETHEUS_TOKEN) {
-    headers.Authorization = `Bearer ${PROMETHEUS_TOKEN}`;
-    headers['X-Auth-Token'] = PROMETHEUS_TOKEN;
-  }
+const DEFAULT_PROMETHEUS_BASE = "https://thanos-metrics.oit.duke.edu";
 
-  const res = await fetch(url, { headers });
-  if (!res.ok) {
-    const bodyText = await res.text().catch(() => '');
-    let detail = '';
+const getQueryEndpoint = (baseUrl: string): string => {
+  const normalized = baseUrl.replace(/\/+$/, "");
+  if (normalized.endsWith("/api/v1/query")) return normalized;
+  return `${normalized}/api/v1/query`;
+};
 
-    try {
-      const json = bodyText ? JSON.parse(bodyText) : null;
-      detail = json?.error || json?.message || '';
-    } catch {
-      detail = '';
-    }
+const extractUser = (metric: Record<string, string>): string | null =>
+  metric.user || metric.username || metric.owner || metric.name || metric.account || null;
 
-    const msgDetail = (detail || bodyText || '').trim();
-    throw new Error(
-      msgDetail
-        ? `Prometheus error: ${res.status} ${res.statusText} (${msgDetail})`
-        : `Prometheus error: ${res.status} ${res.statusText}`
-    );
-  }
-
-  const json = await res.json();
-  if (json.status !== 'success') {
-    throw new Error(`Prometheus returned status: ${json.status}`);
-  }
-
-  return json.data.result as Array<{ metric: Record<string, string>; value: [number, string] }>;
-}
-
-function toMap(results: Array<{ metric: Record<string, string>; value: [number, string] }>) {
+const toMap = (results: PrometheusResult[]): Record<string, number> => {
   const map: Record<string, number> = {};
+  for (const result of results) {
+    const user = extractUser(result.metric);
+    const raw = result.value?.[1];
+    if (!user || raw == null) continue;
+    const parsed = Number.parseFloat(raw);
+    if (Number.isFinite(parsed)) map[user] = parsed;
+  }
+  return map;
+};
 
-  for (const r of results) {
-    const user = r.metric.user || r.metric.username || r.metric.owner || r.metric.name || r.metric.account;
-    if (user) map[user] = parseFloat(r.value[1]);
+const deriveLoadState = (weightedLoad: number | null) => {
+  const load = Number.isFinite(weightedLoad ?? Number.NaN)
+    ? Math.max(0, Math.min(100, weightedLoad as number))
+    : null;
+
+  if (load === null) {
+    return {
+      state: "offline",
+      label: "OFFLINE",
+      percent: null,
+    };
   }
 
-  return map;
-}
+  if (load < 40) {
+    return {
+      state: "crawling",
+      label: "CRAWLING",
+      percent: Math.round(load),
+    };
+  }
 
-function calculateWeightedLoad(users: Array<{
-  avgUtilPct: number | null;
-  gpuHoursAlloc: number | null;
-  gpuHoursEffective: number | null;
-}>) {
+  if (load < 75) {
+    return {
+      state: "cruising",
+      label: "CRUISING",
+      percent: Math.round(load),
+    };
+  }
+
+  return {
+    state: "blazing",
+    label: "BLAZING",
+    percent: Math.round(load),
+  };
+};
+
+const calculateWeightedLoad = (
+  users: Array<{
+    avgUtilPct: number | null;
+    gpuHoursAlloc: number | null;
+    gpuHoursEffective: number | null;
+  }>
+): number | null => {
   let weightedSum = 0;
   let weightTotal = 0;
 
@@ -72,51 +93,82 @@ function calculateWeightedLoad(users: Array<{
   }
 
   return weightTotal > 0 ? weightedSum / weightTotal : null;
-}
+};
 
-function deriveLoadState(weightedLoad: number | null) {
-  const load = Number.isFinite(weightedLoad ?? Number.NaN)
-    ? Math.max(0, Math.min(100, weightedLoad as number))
-    : null;
+const runPrometheusQuery = async (
+  endpoint: string,
+  token: string | undefined,
+  query: string
+): Promise<PrometheusResult[]> => {
+  const url = new URL(endpoint);
+  url.searchParams.set("query", query);
 
-  if (load === null) {
-    return { state: 'offline', label: 'OFFLINE', percent: null };
+  const headers: Record<string, string> = { Accept: "application/json" };
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+    headers["X-Auth-Token"] = token;
   }
 
-  if (load < 40) {
-    return { state: 'idle', label: 'IDLE', percent: Math.round(load) };
+  const response = await fetch(url, { method: "GET", headers });
+  if (!response.ok) {
+    const bodyText = await response.text().catch(() => "");
+    let detail = "";
+    try {
+      const json = bodyText ? (JSON.parse(bodyText) as Record<string, unknown>) : null;
+      const maybeMessage = json?.message;
+      const maybeError = json?.error;
+      detail =
+        (typeof maybeError === "string" && maybeError) ||
+        (typeof maybeMessage === "string" && maybeMessage) ||
+        "";
+    } catch {
+      detail = "";
+    }
+
+    const msgDetail = (detail || bodyText || "").trim();
+    throw new Error(
+      msgDetail
+        ? `Prometheus request failed with ${response.status}: ${msgDetail}`
+        : `Prometheus request failed with ${response.status}`
+    );
   }
 
-  if (load < 75) {
-    return { state: 'busy', label: 'BUSY', percent: Math.round(load) };
+  const payload = (await response.json()) as PrometheusResponse;
+  if (payload.status !== "success") {
+    throw new Error("Prometheus query failed");
   }
 
-  return { state: 'overloaded', label: 'OVERLOADED', percent: Math.round(load) };
-}
+  return payload.data?.result ?? [];
+};
 
-function jsonResponse(payload: unknown, statusCode = 200) {
-  return new Response(JSON.stringify(payload), {
-    status: statusCode,
-    headers: {
-      'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': '*',
-      'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
-      Pragma: 'no-cache',
-      Expires: '0',
-    },
-  });
-}
-
-export async function GET({ url }: { url: URL }) {
-  const lookback = url.searchParams.get('lookback') || '7d';
-  const minHoursRaw = parseFloat(url.searchParams.get('min_hours') || '5');
+export const GET: APIRoute = async ({ request }) => {
+  const url = new URL(request.url);
+  const lookback = url.searchParams.get("lookback") || "7d";
+  const minHoursRaw = Number.parseFloat(url.searchParams.get("min_hours") || "5");
   const minHours = Number.isFinite(minHoursRaw) ? minHoursRaw : 5;
+
+  const prometheusBase =
+    import.meta.env.PROMETHEUS_URL || DEFAULT_PROMETHEUS_BASE;
+  const prometheusToken = import.meta.env.PROMETHEUS_TOKEN;
+  const endpoint = getQueryEndpoint(prometheusBase);
 
   try {
     const [utilResults, allocResults, effectiveResults] = await Promise.all([
-      queryPrometheus(`avg by (user) (avg_over_time(slurm_job_utilization_gpu[${lookback}]))`),
-      queryPrometheus(`sum by (user) (count_over_time(slurm_job_utilization_gpu[${lookback}])) / 240`),
-      queryPrometheus(`sum by (user) (sum_over_time(slurm_job_utilization_gpu[${lookback}])) / 100 / 240`),
+      runPrometheusQuery(
+        endpoint,
+        prometheusToken,
+        `avg by (user) (avg_over_time(slurm_job_utilization_gpu[${lookback}]))`
+      ),
+      runPrometheusQuery(
+        endpoint,
+        prometheusToken,
+        `sum by (user) (count_over_time(slurm_job_utilization_gpu[${lookback}])) / 240`
+      ),
+      runPrometheusQuery(
+        endpoint,
+        prometheusToken,
+        `sum by (user) (sum_over_time(slurm_job_utilization_gpu[${lookback}])) / 100 / 240`
+      ),
     ]);
 
     const utilMap = toMap(utilResults);
@@ -129,30 +181,24 @@ export async function GET({ url }: { url: URL }) {
       ...Object.keys(effectiveMap),
     ]);
 
-    const users = [] as Array<{
-      user: string;
-      avgUtilPct: number | null;
-      gpuHoursAlloc: number | null;
-      gpuHoursEffective: number | null;
-      gpuHoursWasted: number | null;
-    }>;
-
-    for (const user of allUsers) {
+    const users = [...allUsers].map((user) => {
       const avgUtil = utilMap[user] ?? null;
       const hoursAlloc = allocMap[user] ?? null;
       const hoursEffective = effectiveMap[user] ?? null;
 
-      users.push({
+      return {
         user,
         avgUtilPct: avgUtil !== null ? Math.round(avgUtil * 10) / 10 : null,
-        gpuHoursAlloc: hoursAlloc !== null ? Math.round(hoursAlloc * 10) / 10 : null,
-        gpuHoursEffective: hoursEffective !== null ? Math.round(hoursEffective * 10) / 10 : null,
+        gpuHoursAlloc:
+          hoursAlloc !== null ? Math.round(hoursAlloc * 10) / 10 : null,
+        gpuHoursEffective:
+          hoursEffective !== null ? Math.round(hoursEffective * 10) / 10 : null,
         gpuHoursWasted:
           hoursAlloc !== null && hoursEffective !== null
             ? Math.round((hoursAlloc - hoursEffective) * 10) / 10
             : null,
-      });
-    }
+      };
+    });
 
     users.sort((a, b) => (b.avgUtilPct ?? -1) - (a.avgUtilPct ?? -1));
 
@@ -164,25 +210,41 @@ export async function GET({ url }: { url: URL }) {
 
     const weightedLoad = calculateWeightedLoad(users);
 
-    return jsonResponse({
-      ok: true,
-      lookback,
-      minHours,
-      fetchedAt: new Date().toISOString(),
-      clusterStatus: deriveLoadState(weightedLoad),
-      loadBasis: weightedLoad === null ? 'offline' : 'gpu-hours-weighted',
-      leaderboard,
-      wallOfShame,
-      allUsers: users,
-    });
-  } catch (err) {
-    console.error('gpu-metrics route error:', err);
-    return jsonResponse(
+    return new Response(
+      JSON.stringify({
+        ok: true,
+        lookback,
+        minHours,
+        fetchedAt: new Date().toISOString(),
+        clusterStatus: deriveLoadState(weightedLoad),
+        loadBasis: weightedLoad === null ? 'offline' : 'gpu-hours-weighted',
+        leaderboard,
+        wallOfShame,
+        allUsers: users,
+      }),
       {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+          Pragma: "no-cache",
+          Expires: "0",
+        },
+      }
+    );
+  } catch (error) {
+    return new Response(
+      JSON.stringify({
         ok: false,
-        error: err instanceof Error ? err.message : 'Unknown GPU metrics error',
-      },
-      200
+        error: error instanceof Error ? error.message : "Unknown error",
+      }),
+      {
+        status: 500,
+        headers: {
+          "Content-Type": "application/json",
+          "Cache-Control": "no-store",
+        },
+      }
     );
   }
-}
+};

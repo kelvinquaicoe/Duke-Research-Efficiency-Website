@@ -1,15 +1,25 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import GamePlaceholder from "../components/GamePlaceholder.jsx";
+import GameApp from "../game/src/App.tsx";
 ---
 
 <Layout>
-  <section class="game-section">
-    <div class="game-wrapper">
-
-      <div class="game-placeholder-card">
-        <GamePlaceholder client:only="react" />
-      </div>
-    </div>
-  </section>
+  <main class="game-page">
+    <section class="game-section" aria-label="Cluster Command game">
+      <GameApp client:only="react" embedded />
+    </section>
+  </main>
 </Layout>
+
+<style>
+  .game-page {
+    min-height: calc(100vh - 70px);
+    background: #02020a;
+  }
+
+  .game-section {
+    min-height: calc(100vh - 70px);
+    display: block;
+    background: #02020a;
+  }
+</style>

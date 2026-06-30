@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import App from "../game/src/app/App.tsx";
+import App from "../game/src/App.tsx";
 import "./GamePlaceholder.css";
 
 export default function GamePlaceholder() {

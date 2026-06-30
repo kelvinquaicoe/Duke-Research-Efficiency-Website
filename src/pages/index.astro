@@ -126,7 +126,17 @@ const gameHref = `${import.meta.env.BASE_URL || '/'}game`;
       rankEmoji,
     } from '../lib/usersData';
 
-    const rankMarker = (rank, variant) => {
+    type GpuUser = {
+      user: string;
+      avgUtilPct: number | null;
+      gpuHoursAlloc: number | null;
+      gpuHoursEffective: number | null;
+      gpuHoursWasted?: number | null;
+    };
+
+    type BoardVariant = 'leader' | 'loser';
+
+    const rankMarker = (rank: number, variant: BoardVariant): string => {
       if (variant === 'loser') {
         if (rank === 1) return '<span >💤<span class="rank-label"></span></span>';
         if (rank === 2) return '<span >🧱<span class="rank-label"></span></span>';
@@ -137,7 +147,12 @@ const gameHref = `${import.meta.env.BASE_URL || '/'}game`;
       return rankEmoji(rank);
     };
 
-    const renderBoard = (tbody, users, variant) => {
+    const renderBoard = (
+      tbody: HTMLElement | null,
+      users: GpuUser[],
+      variant: BoardVariant,
+    ): void => {
+      if (!tbody) return;
       tbody.innerHTML = '';
 
       if (!users.length) {
@@ -145,13 +160,10 @@ const gameHref = `${import.meta.env.BASE_URL || '/'}game`;
         return;
       }
 
-      users.forEach((user, idx) => {
+      users.forEach((user: GpuUser, idx: number) => {
         const rank = idx + 1;
         const eff = user.avgUtilPct;
         const alloc = user.gpuHoursAlloc;
-        const wasted =
-          user.gpuHoursWasted ??
-          (alloc !== null && user.gpuHoursEffective !== null ? alloc - user.gpuHoursEffective : null);
         const bonus = getGameBonus(user);
         const tr = document.createElement('tr');
         const effBarA = variant === 'loser' ? '#d5ad4d' : '#53d5fd';
@@ -178,14 +190,13 @@ const gameHref = `${import.meta.env.BASE_URL || '/'}game`;
       });
 
       requestAnimationFrame(() => {
-        tbody.querySelectorAll('.efill').forEach((bar) => {
+        tbody.querySelectorAll<HTMLDivElement>('.efill').forEach((bar: HTMLDivElement) => {
           bar.style.width = bar.dataset.width || '0%';
         });
-
       });
     };
 
-    function getGameBonus(user) {
+    function getGameBonus(user: GpuUser): number {
       const eff = user.avgUtilPct ?? 0;
       const alloc = user.gpuHoursAlloc ?? 0;
       const effective = user.gpuHoursEffective ?? 0;
@@ -201,30 +212,28 @@ const gameHref = `${import.meta.env.BASE_URL || '/'}game`;
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-      const utilBar = document.querySelector('.util-fill:not(.efill)');
-      const snail = document.querySelector('.snail-img');
-      const speed = document.querySelector('.snail-speed');
-      const status = document.getElementById('slurm-status');
-      const slurmPanel = document.getElementById('slurm-panel');
-      const slurmPercent = document.getElementById('slurm-percent');
-      const heroLoadCard = document.getElementById('hero-load-card');
-      const heroLoadStatus = document.getElementById('hero-load-status');
-      const leaderLast = document.getElementById('leader-last');
-      const loserLast = document.getElementById('loser-last');
-      const heroLiveError = document.getElementById('hero-live-error');
-      const leaderBody = document.getElementById('leader-tbody');
-      const loserBody = document.getElementById('loser-tbody');
+      const utilBar = document.querySelector('.util-fill:not(.efill)') as HTMLDivElement | null;
+      const snail = document.querySelector('.snail-img') as HTMLImageElement | null;
+      const speed = document.querySelector('.snail-speed') as HTMLDivElement | null;
+      const status = document.getElementById('slurm-status') as HTMLDivElement | null;
+      const slurmPanel = document.getElementById('slurm-panel') as HTMLDivElement | null;
+      const slurmPercent = document.getElementById('slurm-percent') as HTMLSpanElement | null;
+      const heroLoadCard = document.getElementById('hero-load-card') as HTMLDivElement | null;
+      const heroLoadStatus = document.getElementById('hero-load-status') as HTMLElement | null;
+      const leaderLast = document.getElementById('leader-last') as HTMLElement | null;
+      const loserLast = document.getElementById('loser-last') as HTMLElement | null;
+      const heroLiveError = document.getElementById('hero-live-error') as HTMLParagraphElement | null;
+      const leaderBody = document.getElementById('leader-tbody') as HTMLTableSectionElement | null;
+      const loserBody = document.getElementById('loser-tbody') as HTMLTableSectionElement | null;
 
-      const setHeroLiveError = (message) => {
+      const setHeroLiveError = (message: string): void => {
         if (!heroLiveError) return;
         heroLiveError.textContent = message || '';
         heroLiveError.hidden = !message;
       };
 
-      const getLoadState = (averageLoad) => {
-        const load = Number.isFinite(averageLoad)
-          ? Math.max(0, Math.min(100, averageLoad))
-          : null;
+      const getLoadState = (averageLoad: number | null) => {
+        const load = averageLoad === null ? null : Math.max(0, Math.min(100, averageLoad));
 
         if (load === null) {
           return {
@@ -261,7 +270,7 @@ const gameHref = `${import.meta.env.BASE_URL || '/'}game`;
         };
       };
 
-      const applyLoadState = (averageLoad) => {
+      const applyLoadState = (averageLoad: number | null) => {
         if (!heroLoadCard || !heroLoadStatus || !status || !slurmPanel || !slurmPercent || !utilBar || !snail) {
           return;
         }
@@ -349,10 +358,11 @@ const gameHref = `${import.meta.env.BASE_URL || '/'}game`;
 
       loadLiveBoards();
 
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach((entry) => {
+      const observer = new IntersectionObserver((entries: IntersectionObserverEntry[]) => {
+        entries.forEach((entry: IntersectionObserverEntry) => {
           if (!entry.isIntersecting) return;
-          entry.target.querySelectorAll('.efill').forEach((bar) => {
+          const card = entry.target as HTMLElement;
+          card.querySelectorAll<HTMLDivElement>('.efill').forEach((bar: HTMLDivElement) => {
             setTimeout(() => {
               bar.style.width = bar.dataset.width || '0%';
             }, 150);

@@ -1,0 +1,132 @@
+@import "tailwindcss/theme";
+@import "tailwindcss/utilities";
+
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-border: hsl(var(--border));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+
+  --font-sans: "JetBrains Mono", "Fira Code", "Menlo", monospace;
+  --font-mono: "JetBrains Mono", "Fira Code", "Menlo", monospace;
+  --radius: 0.5rem;
+}
+
+.cluster-command-game {
+  --background: 240 25% 3%;
+  --foreground: 210 40% 90%;
+  --border: 215 30% 12%;
+  --primary: 197 97% 65%;
+  --primary-foreground: 240 25% 3%;
+  --secondary: 40 60% 55%;
+  --secondary-foreground: 240 25% 3%;
+  --muted: 215 25% 10%;
+  --muted-foreground: 215 20% 55%;
+  --accent: 197 97% 65%;
+  --accent-foreground: 240 25% 3%;
+  --destructive: 0 80% 55%;
+  --destructive-foreground: 0 0% 100%;
+  --card: 240 20% 5%;
+  --card-foreground: 210 40% 85%;
+  --input: 215 30% 15%;
+  --ring: 197 97% 65%;
+}
+
+@layer base {
+  .cluster-command-game,
+  .cluster-command-game * {
+    box-sizing: border-box;
+  }
+
+  .cluster-command-game {
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+    background: #03030f;
+    color: #c8d8e8;
+    font-family: "JetBrains Mono", "Fira Code", "Menlo", monospace;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .cluster-command-game.is-embedded .h-screen {
+    height: 100%;
+  }
+
+  .cluster-command-game ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+
+  .cluster-command-game ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .cluster-command-game ::-webkit-scrollbar-thumb {
+    background: #1a3a4a;
+    border-radius: 2px;
+  }
+
+  .cluster-command-game ::-webkit-scrollbar-thumb:hover {
+    background: #2a5a6a;
+  }
+}
+
+@layer utilities {
+  .pixelated {
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+  }
+
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  @keyframes pulse-slow {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+  }
+
+  .animate-pulse-slow {
+    animation: pulse-slow 2s ease-in-out infinite;
+  }
+
+  @keyframes glow-cyan {
+    0%, 100% { box-shadow: 0 0 8px #53d5fd44; }
+    50% { box-shadow: 0 0 16px #53d5fd88, 0 0 4px #53d5fd; }
+  }
+
+  .animate-glow-cyan {
+    animation: glow-cyan 2s ease-in-out infinite;
+  }
+
+  @keyframes scan-line {
+    0% { transform: translateY(-100%); }
+    100% { transform: translateY(100vh); }
+  }
+
+  @keyframes flicker {
+    0%, 95%, 100% { opacity: 1; }
+    96% { opacity: 0.8; }
+    97% { opacity: 1; }
+    98% { opacity: 0.6; }
+    99% { opacity: 1; }
+  }
+
+  .animate-flicker {
+    animation: flicker 8s infinite;
+  }
+}

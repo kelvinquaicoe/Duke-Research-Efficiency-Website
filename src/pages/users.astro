@@ -2,25 +2,6 @@
 import Layout from '../layouts/Layout.astro';
 import SiteHeader from '../components/SiteHeader.astro';
 
-type GpuUser = {
-  user: string;
-  avgUtilPct: number | null;
-  gpuHoursAlloc: number | null;
-  gpuHoursEffective: number | null;
-  gpuHoursWasted?: number | null;
-};
-
-type GpuMetricsResponse =
-  | {
-      ok: true;
-      fetchedAt: string;
-      allUsers: GpuUser[];
-    }
-  | {
-      ok: false;
-      error: string;
-    };
-
 ---
 
 <Layout>
@@ -124,187 +105,233 @@ type GpuMetricsResponse =
 <script>
   import { initGpuMetrics } from '../components/GpuMetrics.js';
 
-  /** @type {Array<{user:string, avgUtilPct:number|null, gpuHoursAlloc:number|null, gpuHoursEffective:number|null, gpuHoursWasted?:number|null}>} */
-  let liveUsers = [];
-  let fetchedAt = null;
+  type GpuUser = {
+    user: string;
+    avgUtilPct: number | null;
+    gpuHoursAlloc: number | null;
+    gpuHoursEffective: number | null;
+    gpuHoursWasted?: number | null;
+  };
 
-  const rankEmoji = (r) => (r === 1 ? '🏆' : r === 2 ? '🥈' : r === 3 ? '🥉' : String(r));
-const rankPalette = (rank, maxRank) => {
-  // Match leader/loser board bar styling:
-  // - top 5: teal
-  // - bottom 5: red
-  // - everyone else: gold
-  if (rank <= 5) return { text: '#53d5fd', a: '#53d5fd', b: '#b6eeff' };
-  if (rank > maxRank - 5) return { text: '#ef4444', a: '#ef4444', b: '#fca5a5' };
-  return { text: '#d5ad4d', a: '#d5ad4d', b: '#ffebaf' };
-};
+  let liveUsers: GpuUser[] = [];
+  let fetchedAt: string | null = null;
 
-let filtered   = [...liveUsers];
-let activeRank = null;
+  const getEl = <T extends HTMLElement>(id: string) => document.getElementById(id) as T | null;
+  const getTableBody = () => getEl<HTMLTableSectionElement>('tbody');
+  const getCountEl = () => getEl<HTMLElement>('count');
+  const getProfilePanel = () => getEl<HTMLElement>('profile-panel');
+  const getProfileValue = (id: string) => getEl<HTMLElement>(id);
 
-function renderTable() {
-  const tbody = document.getElementById('tbody');
-  tbody.innerHTML = '';
-  filtered.forEach((u, idx) => {
-    const rank = idx + 1;
-    const tr  = document.createElement('tr');
-    const pal = rankPalette(rank, filtered.length);
-    if (activeRank === rank) tr.classList.add('active-row');
+  const rankEmoji = (rank: number) => (rank === 1 ? '🏆' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : String(rank));
+  const rankPalette = (rank: number, maxRank: number) => {
+    // Match leader/loser board bar styling:
+    // - top 5: teal
+    // - bottom 5: red
+    // - everyone else: gold
+    if (rank <= 5) return { text: '#53d5fd', a: '#53d5fd', b: '#b6eeff' };
+    if (rank > maxRank - 5) return { text: '#ef4444', a: '#ef4444', b: '#fca5a5' };
+    return { text: '#d5ad4d', a: '#d5ad4d', b: '#ffebaf' };
+  };
+
+  let filtered: GpuUser[] = [...liveUsers];
+  let activeRank: number | null = null;
+
+  function renderTable(): void {
+    const tbody = getTableBody();
+    if (!tbody) return;
+
+    tbody.innerHTML = '';
+
+    filtered.forEach((u: GpuUser, idx: number) => {
+      const rank = idx + 1;
+      const tr = document.createElement('tr');
+      const pal = rankPalette(rank, filtered.length);
+      if (activeRank === rank) tr.classList.add('active-row');
+
+      const eff = u.avgUtilPct;
+      const effText = eff !== null && Number.isFinite(eff) ? eff.toFixed(1) : '—';
+      const effWidth = eff !== null && Number.isFinite(eff) ? `${Math.max(0, Math.min(100, eff))}%` : '0%';
+
+      const alloc = u.gpuHoursAlloc;
+      const allocText = alloc !== null && Number.isFinite(alloc) ? `${alloc.toFixed(1)}h` : '—';
+
+      const effective = u.gpuHoursEffective;
+      const wasted = u.gpuHoursWasted ?? (alloc !== null && effective !== null ? alloc - effective : null);
+      const wastedText = wasted !== null && Number.isFinite(wasted) ? `${wasted.toFixed(1)}h` : '—';
+
+      const bonus = getGameBonus(u);
+      const status = getStatusInfo(u);
+
+      tr.innerHTML = `
+        <td class="rank-cell">${rankEmoji(rank)}</td>
+        <td class="name-cell">${u.user}</td>
+        <td>
+          <div class="eff-cell">
+            <span class="eff-num" style="color:${pal.text}">${effText}</span>
+            <div class="ebar"><div class="efill" data-width="${effWidth}" style="width:0;--fill-a:${pal.a};--fill-b:${pal.b}"></div></div>
+          </div>
+        </td>
+        <td class="dim-cell">${allocText}</td>
+        <td class="dim-cell">${wastedText}</td>
+        <td class="bonus-cell">+${bonus.toLocaleString()}</td>
+        <td><span class="status-pill status-${status.className}" aria-label="${status.label}" title="${status.label}">${status.label}</span></td>
+      `;
+      tr.addEventListener('click', () => openProfile(u, rank));
+      tbody.appendChild(tr);
+    });
+
+    // Kick off bar transitions after DOM insertion so they animate like the leader/loser boards.
+    requestAnimationFrame(() => {
+      Array.from(tbody.querySelectorAll<HTMLDivElement>('.efill')).forEach((bar) => {
+        bar.style.width = bar.dataset.width || '0%';
+      });
+    });
+
+    const countEl = getCountEl();
+    if (countEl) {
+      countEl.textContent = `${filtered.length} of ${liveUsers.length} users`;
+    }
+  }
+
+  function getGameBonus(u: GpuUser): number {
+    const eff = u.avgUtilPct ?? 0;
+    const alloc = u.gpuHoursAlloc ?? 0;
+    const effective = u.gpuHoursEffective ?? 0;
+    const wasted = Math.max(0, u.gpuHoursWasted ?? (alloc - effective));
+
+    const efficiencyReward = Math.round(eff * 4);
+    const throughputReward = Math.round(effective * 3);
+    const queueReliefReward = alloc >= 80 ? 250 : alloc >= 50 ? 160 : alloc >= 25 ? 100 : 50;
+    const savingsReward = Math.max(0, 180 - Math.round(wasted * 2));
+    const achievementBonus = eff >= 95 ? 250 : eff >= 90 ? 150 : eff >= 85 ? 100 : eff >= 80 ? 50 : 0;
+
+    return efficiencyReward + throughputReward + queueReliefReward + savingsReward + achievementBonus;
+  }
+
+  function getStatusInfo(u: GpuUser): { label: string; className: string } {
+    const eff = u.avgUtilPct ?? 0;
+    const alloc = u.gpuHoursAlloc ?? 0;
+    const effective = u.gpuHoursEffective ?? 0;
+    const wasted = Math.max(0, u.gpuHoursWasted ?? (alloc - effective));
+
+    if (eff >= 90 && wasted < 12) return { label: '🔥 BLAZING', className: 'blazing' };
+    if (eff >= 80 && wasted < 20) return { label: '⚡ CRUISING', className: 'cruising' };
+    if (wasted >= 35 || eff < 60) return { label: '🚨 CONGESTING', className: 'congesting' };
+    return { label: '🐌 IDLING', className: 'idling' };
+  }
+
+  function setTextContent(id: string, value: string): void {
+    const el = getProfileValue(id);
+    if (el) el.textContent = value;
+  }
+
+  function openProfile(u: GpuUser, rank: number): void {
+    if (activeRank === rank) {
+      closeProfile();
+      return;
+    }
+
+    activeRank = rank;
 
     const eff = u.avgUtilPct;
-    const effText = eff !== null && Number.isFinite(eff) ? eff.toFixed(1) : '—';
-    const effWidth = eff !== null && Number.isFinite(eff) ? `${Math.max(0, Math.min(100, eff))}%` : '0%';
-
     const alloc = u.gpuHoursAlloc;
-    const allocText = alloc !== null && Number.isFinite(alloc) ? `${alloc.toFixed(1)}h` : '—';
-
     const effective = u.gpuHoursEffective;
     const wasted = u.gpuHoursWasted ?? (alloc !== null && effective !== null ? alloc - effective : null);
-    const wastedText = wasted !== null && Number.isFinite(wasted) ? `${wasted.toFixed(1)}h` : '—';
-
     const bonus = getGameBonus(u);
     const status = getStatusInfo(u);
 
-    tr.innerHTML = `
-      <td class="rank-cell">${rankEmoji(rank)}</td>
-      <td class="name-cell">${u.user}</td>
-      <td>
-        <div class="eff-cell">
-          <span class="eff-num" style="color:${pal.text}">${effText}</span>
-          <div class="ebar"><div class="efill" data-width="${effWidth}" style="width:0;--fill-a:${pal.a};--fill-b:${pal.b}"></div></div>
-        </div>
-      </td>
-      <td class="dim-cell">${allocText}</td>
-      <td class="dim-cell">${wastedText}</td>
-      <td class="bonus-cell">+${bonus.toLocaleString()}</td>
-      <td><span class="status-pill status-${status.className}" aria-label="${status.label}" title="${status.label}">${status.label}</span></td>
-    `;
-    tr.addEventListener('click', () => openProfile(u, rank));
-    tbody.appendChild(tr);
-  });
+    setTextContent('pp-name', u.user);
+    setTextContent('pp-meta', `RANK #${rank} · ${status.label} · +${bonus.toLocaleString()}`);
+    setTextContent('pp-eff', eff !== null && Number.isFinite(eff) ? `${eff.toFixed(1)}%` : '—');
+    setTextContent('pp-gpu', alloc !== null && Number.isFinite(alloc) ? `${alloc.toFixed(1)}h` : '—');
+    setTextContent('pp-game', Number.isFinite(bonus) ? bonus.toLocaleString() : '—');
+    setTextContent('pp-score', wasted !== null && Number.isFinite(wasted) ? `${wasted.toFixed(1)}h` : '—');
+    setTextContent('pp-last', fetchedAt ? new Date(fetchedAt).toLocaleString() : '—');
 
-  // Kick off bar transitions after DOM insertion so they animate like the leader/loser boards.
-  requestAnimationFrame(() => {
-    tbody.querySelectorAll('.efill').forEach((bar) => {
-      bar.style.width = bar.dataset.width || '0%';
-    });
-  });
-
-  document.getElementById('count').textContent =
-    `${filtered.length} of ${liveUsers.length} users`;
-}
-
-function getGameBonus(u) {
-  const eff = u.avgUtilPct ?? 0;
-  const alloc = u.gpuHoursAlloc ?? 0;
-  const effective = u.gpuHoursEffective ?? 0;
-  const wasted = Math.max(0, u.gpuHoursWasted ?? (alloc - effective));
-
-  const efficiencyReward = Math.round(eff * 4);
-  const throughputReward = Math.round(effective * 3);
-  const queueReliefReward = alloc >= 80 ? 250 : alloc >= 50 ? 160 : alloc >= 25 ? 100 : 50;
-  const savingsReward = Math.max(0, 180 - Math.round(wasted * 2));
-  const achievementBonus = eff >= 95 ? 250 : eff >= 90 ? 150 : eff >= 85 ? 100 : eff >= 80 ? 50 : 0;
-
-  return efficiencyReward + throughputReward + queueReliefReward + savingsReward + achievementBonus;
-}
-
-function getStatusInfo(u) {
-  const eff = u.avgUtilPct ?? 0;
-  const alloc = u.gpuHoursAlloc ?? 0;
-  const effective = u.gpuHoursEffective ?? 0;
-  const wasted = Math.max(0, u.gpuHoursWasted ?? (alloc - effective));
-
-  if (eff >= 90 && wasted < 12) return { label: '🔥 BLAZING', className: 'blazing' };
-  if (eff >= 80 && wasted < 20) return { label: '⚡ CRUISING', className: 'cruising' };
-  if (wasted >= 35 || eff < 60) return { label: '🚨 CONGESTING', className: 'congesting' };
-  return { label: '🐌 IDLING', className: 'idling' };
-}
-
-function openProfile(u, rank) {
-  if (activeRank === rank) { closeProfile(); return; }
-  activeRank = rank;
-
-  const eff = u.avgUtilPct;
-  const alloc = u.gpuHoursAlloc;
-  const effective = u.gpuHoursEffective;
-  const wasted = u.gpuHoursWasted ?? (alloc !== null && effective !== null ? alloc - effective : null);
-  const bonus = getGameBonus(u);
-  const status = getStatusInfo(u);
-
-  document.getElementById('pp-name').textContent = u.user;
-  document.getElementById('pp-meta').textContent = `RANK #${rank} · ${status.label} · +${bonus.toLocaleString()}`;
-  document.getElementById('pp-eff').textContent =
-    eff !== null && Number.isFinite(eff) ? eff.toFixed(1) + '%' : '—';
-  document.getElementById('pp-gpu').textContent =
-    alloc !== null && Number.isFinite(alloc) ? alloc.toFixed(1) + 'h' : '—';
-  document.getElementById('pp-game').textContent =
-    bonus !== null && Number.isFinite(bonus) ? bonus.toLocaleString() : '—';
-  document.getElementById('pp-score').textContent =
-    wasted !== null && Number.isFinite(wasted) ? wasted.toFixed(1) + 'h' : '—';
-  document.getElementById('pp-last').textContent =
-    fetchedAt ? new Date(fetchedAt).toLocaleString() : '—';
-  document.getElementById('profile-panel').classList.add('open');
-  renderTable();
-}
-
-function closeProfile() {
-  activeRank = null;
-  document.getElementById('profile-panel').classList.remove('open');
-  renderTable();
-}
-
-document.getElementById('pp-close').addEventListener('click', closeProfile);
-
-document.getElementById('search').addEventListener('input', e => {
-  const q = e.target.value.toLowerCase();
-  filtered = liveUsers.filter(u => u.user.toLowerCase().includes(q));
-  renderTable();
-});
-
-document.getElementById('sort').addEventListener('change', e => {
-  const v = e.target.value;
-  const numOrNeg = (n) => (n === null || !Number.isFinite(n) ? -1 : n);
-  if (v === 'eff-desc')     filtered.sort((a,b) => numOrNeg(b.avgUtilPct) - numOrNeg(a.avgUtilPct));
-  if (v === 'eff-asc')      filtered.sort((a,b) => numOrNeg(a.avgUtilPct) - numOrNeg(b.avgUtilPct));
-  if (v === 'gpu-desc')     filtered.sort((a,b) => numOrNeg(b.gpuHoursAlloc) - numOrNeg(a.gpuHoursAlloc));
-  if (v === 'effhrs-desc')  filtered.sort((a,b) => {
-    const wastedA = a.gpuHoursWasted ?? ((a.gpuHoursAlloc ?? 0) - (a.gpuHoursEffective ?? 0));
-    const wastedB = b.gpuHoursWasted ?? ((b.gpuHoursAlloc ?? 0) - (b.gpuHoursEffective ?? 0));
-    return numOrNeg(wastedB) - numOrNeg(wastedA);
-  });
-  if (v === 'name-asc')     filtered.sort((a,b) => a.user.localeCompare(b.user));
-  renderTable();
-});
-
-async function loadLiveUsers() {
-  const tbody = document.getElementById('tbody');
-  tbody.innerHTML = `<tr><td colspan="7" class="dim-cell">Loading live data…</td></tr>`;
-
-  try {
-    const response = await fetch('/api/gpu-metrics.json');
-    const data = await response.json();
-    if (!response.ok || !data?.ok) throw new Error(data?.error || `Request failed (${response.status})`);
-
-    liveUsers = data.allUsers || [];
-    fetchedAt = data.fetchedAt || null;
-    filtered = [...liveUsers];
+    const panel = getProfilePanel();
+    if (panel) panel.classList.add('open');
     renderTable();
-  } catch (error) {
-    tbody.innerHTML = `<tr><td colspan="7" class="dim-cell">Could not load live data.</td></tr>`;
-    document.getElementById('count').textContent = '0 users';
   }
-}
 
-renderTable();
-loadLiveUsers();
+  function closeProfile(): void {
+    activeRank = null;
+    const panel = getProfilePanel();
+    if (panel) panel.classList.remove('open');
+    renderTable();
+  }
 
-initGpuMetrics({
-  mountId: 'gpu-metrics-root',
-  lookback: '7d',
-  minHours: 5
-});
+  const closeBtn = getEl<HTMLButtonElement>('pp-close');
+  if (closeBtn) {
+    closeBtn.addEventListener('click', closeProfile);
+  }
+
+  const searchEl = getEl<HTMLInputElement>('search');
+  if (searchEl) {
+    searchEl.addEventListener('input', (event: Event) => {
+      const input = event.currentTarget as HTMLInputElement | null;
+      const q = input?.value.toLowerCase() ?? '';
+      filtered = liveUsers.filter((u: GpuUser) => u.user.toLowerCase().includes(q));
+      renderTable();
+    });
+  }
+
+  const sortEl = getEl<HTMLSelectElement>('sort');
+  if (sortEl) {
+    sortEl.addEventListener('change', (event: Event) => {
+      const select = event.currentTarget as HTMLSelectElement | null;
+      const v = select?.value ?? 'eff-desc';
+      const numOrNeg = (n: number | null): number => (n === null || !Number.isFinite(n) ? -1 : n);
+
+      if (v === 'eff-desc') filtered.sort((a, b) => numOrNeg(b.avgUtilPct) - numOrNeg(a.avgUtilPct));
+      if (v === 'eff-asc') filtered.sort((a, b) => numOrNeg(a.avgUtilPct) - numOrNeg(b.avgUtilPct));
+      if (v === 'gpu-desc') filtered.sort((a, b) => numOrNeg(b.gpuHoursAlloc) - numOrNeg(a.gpuHoursAlloc));
+      if (v === 'effhrs-desc') {
+        filtered.sort((a, b) => {
+          const wastedA = a.gpuHoursWasted ?? ((a.gpuHoursAlloc ?? 0) - (a.gpuHoursEffective ?? 0));
+          const wastedB = b.gpuHoursWasted ?? ((b.gpuHoursAlloc ?? 0) - (b.gpuHoursEffective ?? 0));
+          return numOrNeg(wastedB) - numOrNeg(wastedA);
+        });
+      }
+      if (v === 'name-asc') filtered.sort((a, b) => a.user.localeCompare(b.user));
+      renderTable();
+    });
+  }
+
+  async function loadLiveUsers(): Promise<void> {
+    const tbody = getTableBody();
+    if (tbody) {
+      tbody.innerHTML = `<tr><td colspan="7" class="dim-cell">Loading live data…</td></tr>`;
+    }
+
+    try {
+      const response = await fetch('/api/gpu-metrics.json');
+      const data = (await response.json()) as Partial<{ ok: boolean; fetchedAt: string; allUsers: GpuUser[]; error: string }>;
+      if (!response.ok || !data?.ok) throw new Error(data?.error || `Request failed (${response.status})`);
+
+      liveUsers = data.allUsers || [];
+      fetchedAt = data.fetchedAt || null;
+      filtered = [...liveUsers];
+      renderTable();
+    } catch {
+      if (tbody) {
+        tbody.innerHTML = `<tr><td colspan="7" class="dim-cell">Could not load live data.</td></tr>`;
+      }
+      const countEl = getCountEl();
+      if (countEl) countEl.textContent = '0 users';
+    }
+  }
+
+  renderTable();
+  loadLiveUsers();
+
+  initGpuMetrics({
+    mountId: 'gpu-metrics-root',
+    lookback: '7d',
+    minHours: 5,
+  });
 </script>
+
+
 
 <style>
   /* ── MAIN — matches your existing background ── */
